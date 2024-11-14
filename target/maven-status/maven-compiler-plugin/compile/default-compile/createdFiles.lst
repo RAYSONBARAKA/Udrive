@@ -85,6 +85,7 @@ com\example\DriverApp\Entities\Admin.class
 com\example\DriverApp\Service\CustomerService.class
 com\example\DriverApp\Repositories\DriverRepository.class
 com\example\DriverApp\Entities\RideRequest.class
+com\example\DriverApp\PushNotification\FirebaseNotificationService.class
 com\example\DriverApp\Controller\MoverController.class
 com\example\DriverApp\DTO\ApiResponse.class
 com\example\DriverApp\Service\EmailService.class

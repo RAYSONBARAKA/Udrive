@@ -125,10 +125,15 @@ public class CustomerService {
                 customer.setLastLoginTime(LocalDateTime.now()); // Set last login time
                 customer.setLatitude(latitude); // Set latitude
                 customer.setLongitude(longitude); // Set longitude
-                customerRepository.save(customer); // Save updated customer entity
     
                 // Generate JWT token for the customer with a 28-hour expiration
                 String token = jwtUtil.generateTokenWithExpiration(customer.getEmail(), 28);
+    
+                // Store the token in the customer's record
+                customer.setToken(token);
+    
+                // Save the updated customer entity
+                customerRepository.save(customer);
     
                 // Return LoginResponse with user ID and token
                 return new LoginResponse(customer.getId(), token);
@@ -138,6 +143,7 @@ public class CustomerService {
         // Return null if the login failed (invalid credentials, inactive account, or password mismatch)
         return null;
     }
+    
     
     public ApiResponse<String> updateLocation(Long customerId, double latitude, double longitude) {
         Optional<Customer> customerOptional = customerRepository.findById(customerId);

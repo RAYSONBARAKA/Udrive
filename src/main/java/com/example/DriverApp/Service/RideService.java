@@ -15,6 +15,7 @@ import com.example.DriverApp.Entities.Customer;
 import com.example.DriverApp.Entities.Driver;
 import com.example.DriverApp.Entities.RideHistory;
 import com.example.DriverApp.Entities.RideRequest;
+import com.example.DriverApp.PushNotification.FirebaseNotificationService;
 import com.example.DriverApp.Repositories.DriverRepository;
 import com.example.DriverApp.Repositories.RideRequestRepository;
 import com.example.DriverApp.Repositories.CarServiceRepository;
@@ -38,6 +39,10 @@ public class RideService {
 
     @Autowired
     private DriverRepository driverRepository;
+
+
+      @Autowired
+    private FirebaseNotificationService firebaseNotificationService;
 
     @Autowired
     private CarServiceRepository carServiceRepository;
@@ -158,29 +163,44 @@ public class RideService {
         return rideRequestRepository.findByDriverAndStatus(driver, "Pending");
     }
 
+
+
     //accept
     public RideRequest acceptRideRequest(Long driverId, Long rideRequestId) {
+        // Find driver by ID
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found"));
-    
+
+        // Find ride request by ID
         RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
                 .orElseThrow(() -> new RuntimeException("Ride request not found"));
 
+        // Check if the ride request is still pending
         if (!"Pending".equals(rideRequest.getStatus())) {
             throw new RuntimeException("This ride request cannot be accepted as it is no longer pending.");
         }
+    
 
+        // Update ride request status and assign the driver
         rideRequest.setStatus("Accepted");
         rideRequest.setDriver(driver);
 
-        notificationService.createNotification(
-                rideRequest.getCustomer(),
-                driver,
-                "Your ride request has been accepted by " + driver.getFullName()
-        );
+        // Compose notification message
+        String messageBody = "Hello, your ride request has been accepted by " 
+                            + driver.getFullName() 
+                            + ". Your driver will arrive shortly.";
 
+        // Create notification in the database
+        notificationService.createNotification(rideRequest.getCustomer(), driver, messageBody);
+
+        // Send push notification using Firebase
+        String deviceToken = rideRequest.getCustomer().getToken(); // Ensure deviceToken is available
+        firebaseNotificationService.sendPushNotification(deviceToken, messageBody);
+
+        // Save and return the updated ride request
         return rideRequestRepository.save(rideRequest);
     }
+
 
     public RideRequest rejectRideRequest(Long driverId, Long rideRequestId) {
         Driver driver = driverRepository.findById(driverId)

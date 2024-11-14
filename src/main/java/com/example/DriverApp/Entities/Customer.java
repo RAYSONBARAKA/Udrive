@@ -17,7 +17,14 @@ public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; 
+     private String token; 
     private String firstName;
+    public String getToken() {
+        return token;
+    }
+    public void setToken(String token) {
+        this.token = token;
+    }
     @Column(nullable = true)
     private String passwordResetOtp;
     private LocalDateTime activationCodeGeneratedTime;

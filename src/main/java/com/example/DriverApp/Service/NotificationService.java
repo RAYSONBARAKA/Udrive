@@ -17,7 +17,7 @@ public class NotificationService {
      public Notification createNotification(Customer customer, Driver driver, String message) {
         Notification notification = new Notification();
         notification.setCustomer(customer);
-        notification.setDriver(driver);
+        notification.setDriver(driver);  
         notification.setMessage(message);
         notification.setTimestamp(LocalDateTime.now());
         notification.setStatus("unread");  
