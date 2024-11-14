@@ -17,6 +17,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\ServiceCont
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\UberIntegrationController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\UploadController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DriverAppApplication.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\AdminLoginRequest.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\AdminResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\ApiResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\CarTypeWithPriceDTO.java

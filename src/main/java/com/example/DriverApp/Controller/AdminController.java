@@ -1,5 +1,7 @@
 package com.example.DriverApp.Controller;
 
+import com.example.DriverApp.DTO.AdminLoginRequest;
+import com.example.DriverApp.DTO.AdminResponse;
 import com.example.DriverApp.DTO.ApiResponse;
 import com.example.DriverApp.DTO.ChangePasswordRequest;
 import com.example.DriverApp.DTO.LoginRequest;
@@ -77,18 +79,15 @@ public class AdminController {
 
     // Admin login
     @PostMapping("/login")
-   public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
-        // Call the service method to perform login and get the response
-        Map<String, Object> response = adminService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        
-        // If response contains a valid token (meaning login was successful)
-        if (response != null && response.containsKey("token")) {
-            return ResponseEntity.status(200).body(response); // Return successful login with status 200
-        } else {
-            // If login failed, return 401 Unauthorized
-            return ResponseEntity.status(401).body(null); // Unauthorized or invalid credentials
-        }
+    public ResponseEntity<AdminResponse> login(@RequestBody AdminLoginRequest loginRequest) {
+        String email = loginRequest.getEmail();
+        String password = loginRequest.getPassword();
+    
+        AdminResponse response = adminService.login(email, password);
+        return ResponseEntity.ok(response);
     }
+    
+    
 
     // Change password
  

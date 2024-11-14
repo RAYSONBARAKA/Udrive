@@ -38,6 +38,7 @@ com\example\DriverApp\DTO\DriverDetailsDTO.class
 com\example\DriverApp\Service\QRCodeService.class
 com\example\DriverApp\Service\CarServiceService.class
 com\example\DriverApp\Controller\CarServiceController.class
+com\example\DriverApp\DTO\AdminLoginRequest.class
 com\example\DriverApp\Repositories\CustomerLocationRepository.class
 com\example\DriverApp\Controller\DriverController.class
 com\example\DriverApp\Service\RideService.class

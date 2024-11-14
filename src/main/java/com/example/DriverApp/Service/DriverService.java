@@ -2,13 +2,10 @@ package com.example.DriverApp.Service;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-
-import javax.management.Notification;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -17,20 +14,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
-
 import com.example.DriverApp.DTO.ApiResponse;
 import com.example.DriverApp.DTO.LoginRequest;
 import com.example.DriverApp.DTO.LoginResponse;
 import com.example.DriverApp.Entities.Driver;
-import com.example.DriverApp.Entities.RideRequest;
 import com.example.DriverApp.Repositories.DriverRepository;
 import com.example.DriverApp.Repositories.NotificationRepository;
 import com.example.DriverApp.Repositories.RideRequestRepository;
 import com.example.DriverApp.Utility.JwtUtil;
-import com.example.DriverApp.WebSocketHandler.RideRequestWebSocketHandler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

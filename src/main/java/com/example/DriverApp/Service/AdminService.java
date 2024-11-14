@@ -1,5 +1,6 @@
 package com.example.DriverApp.Service;
 
+import com.example.DriverApp.DTO.AdminResponse;
 import com.example.DriverApp.Entities.Admin;
 import com.example.DriverApp.Repositories.AdminRepository;
 import com.example.DriverApp.Utility.JwtUtil; // Import the JwtUtil class
@@ -36,44 +37,32 @@ public class AdminService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    // Create or Register Admin
-    public Admin registerAdmin(Admin admin) {
-        // Hash the password before saving
-        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
+     public Admin registerAdmin(Admin admin) {
+         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
 
-        // Generate the employeeNumber and assign it (e.g., emp/0001, emp/0002, etc.)
-        admin.setEmployeeNumber(generateEmployeeNumber());
+         admin.setEmployeeNumber(generateEmployeeNumber());
 
         return adminRepository.save(admin);
     }
 
-    // Generate an employee number that starts with emp/
-    private String generateEmployeeNumber() {
+     private String generateEmployeeNumber() {
         long count = adminRepository.count();  // Get the current number of admins in the database
         return "emp/" + String.format("%04d", count + 1);  // Generate a number like emp/0001, emp/0002, etc.
     }
 
-    // Login method that authenticates and returns admin ID and JWT token
-    public Map<String, Object> login(String email, String password) {
-        Admin admin = adminRepository.findByEmail(email);
-    
-        if (admin != null && passwordEncoder.matches(password, admin.getPassword())) {
-            // Generate the token using JwtUtil
-            String token = jwtUtil.generateTokenWithExpiration(email, 1); // Using 1-day expiration
-    
-            // Prepare the response containing admin ID, token, and status code
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", 200); 
-            response.put("id", admin.getId());
-            response.put("token", token);
-    
-            return response;
-        }
-    
-        // Authentication failed
-        throw new RuntimeException("Invalid credentials"); // Throw a meaningful exception
+   public AdminResponse login(String email, String password) {
+    Admin admin = adminRepository.findByEmail(email);
+
+    if (admin != null && passwordEncoder.matches(password, admin.getPassword())) {
+        String token = jwtUtil.generateTokenWithExpiration(email, 1); // 1-day expiration
+
+        // Return an instance of AdminResponse instead of Map
+        return new AdminResponse(admin.getId(), token);
     }
-    
+
+     throw new RuntimeException("Invalid credentials"); // Throw a meaningful exception
+     
+}
     // Get all admins
     public List<Admin> getAllAdmins() {
         return adminRepository.findAll();
