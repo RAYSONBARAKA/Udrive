@@ -21,6 +21,7 @@ com\example\DriverApp\Controller\CustomerController.class
 com\example\DriverApp\Repositories\MoverRepository.class
 com\example\DriverApp\Entities\Mover.class
 com\example\DriverApp\Entities\Notification.class
+com\example\DriverApp\DTO\CarServiceResponse.class
 com\example\DriverApp\Entities\Products.class
 com\example\DriverApp\Entities\CustomerLocation.class
 com\example\DriverApp\DTO\DriverInfoDTO.class

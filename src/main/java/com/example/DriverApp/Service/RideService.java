@@ -44,12 +44,18 @@ public class RideService {
 
     // Method to get all vehicle types with estimated prices for a given service name and drop-off location
     public List<CarServiceResponse> getAllVehicleTypesWithPrices(String serviceName, Long customerId, double dropOffLatitude, double dropOffLongitude) {
+        // Fetch car services by the service name
         List<CarService> carServices = carServiceRepository.findByServiceName(serviceName);
+        
+        // Retrieve customer by customerId with exception handling if not found
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
+    
+        // Customer's pickup location
         double pickupLatitude = customer.getLatitude();
         double pickupLongitude = customer.getLongitude();
-
+    
+        // Map each car service to a response with vehicle type and estimated price based on distance
         return carServices.stream()
                 .map(carService -> {
                     double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
@@ -58,54 +64,60 @@ public class RideService {
                 })
                 .collect(Collectors.toList());
     }
-
+    
     // DTO class for car service response (vehicle type and calculated price)
     public static class CarServiceResponse {
         private String vehicleType;
         private double estimatedPrice;
-
+    
         public CarServiceResponse(String vehicleType, double estimatedPrice) {
             this.vehicleType = vehicleType;
             this.estimatedPrice = estimatedPrice;
         }
-
+    
         public String getVehicleType() {
             return vehicleType;
         }
-
+    
         public double getEstimatedPrice() {
             return estimatedPrice;
         }
     }
-
+    
     public double calculatePrice(Long customerId, String serviceName, String vehicleType, double dropOffLatitude, double dropOffLongitude) {
+        // Retrieve customer by customerId
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
-
+    
+        // Calculate distance using customer and drop-off coordinates
         double pickupLatitude = customer.getLatitude();
         double pickupLongitude = customer.getLongitude();
         double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
-
+    
+        // Retrieve specific car service by serviceName and vehicleType
         CarService carService = carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
                 .orElseThrow(() -> new RuntimeException("Car service not available for selected type and service"));
-
+    
+        // Return the calculated price
         return distance * carService.getRatePerKm();
     }
-
+    
+    // Calculate distance between two geographic points using Haversine formula
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int EARTH_RADIUS = 6371;
-
+        final int EARTH_RADIUS = 6371; // Earth radius in kilometers
+    
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
-
+    
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-
+    
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
+    
         return EARTH_RADIUS * c;
     }
+    
 
     public List<RideRequest> sendRequestToDriversWithSameVehicleType(Long customerId, String vehicleType, double dropOffLatitude, double dropOffLongitude, Long serviceId) {
         Customer customer = customerRepository.findById(customerId)
