@@ -1,4 +1,3 @@
-com\example\DriverApp\DriverAppApplication$Application.class
 com\example\DriverApp\SecurityConfig\Config.class
 com\example\DriverApp\Entities\RideHistory.class
 com\example\DriverApp\Service\CarServiceService$CarServiceResponse.class
@@ -7,6 +6,7 @@ com\example\DriverApp\Service\DriverLocationService.class
 com\example\DriverApp\Entities\PrimaryTable.class
 com\example\DriverApp\Utility\Mapper.class
 com\example\DriverApp\Controller\AdminController.class
+com\example\DriverApp\SocketIo\SocketIOClient$1.class
 com\example\DriverApp\DTO\CarTypeWithPriceDTO.class
 com\example\DriverApp\DTO\ChangePasswordRequest.class
 com\example\DriverApp\Repositories\CustomerRepository.class
@@ -32,7 +32,6 @@ com\example\DriverApp\DriverAppApplication.class
 com\example\DriverApp\DTO\RideEstimateDTO.class
 com\example\DriverApp\Service\DriverAvailabilityService$DriverDistance.class
 com\example\DriverApp\Controller\ServiceController.class
-com\example\DriverApp\Service\RideService$DriverLocation.class
 com\example\DriverApp\DTO\RideRequestMessage.class
 com\example\DriverApp\Entities\ServiceEntity.class
 com\example\DriverApp\DTO\DriverDetailsDTO.class
@@ -48,6 +47,7 @@ com\example\DriverApp\DTO\RidesResponse.class
 com\example\DriverApp\Service\ServiceService.class
 com\example\DriverApp\Entities\CarService.class
 com\example\DriverApp\WebSocketHandler\RideRequestWebSocketHandler.class
+com\example\DriverApp\SocketIo\SocketIOClient$3.class
 com\example\DriverApp\Configuration\WebSocketConfig.class
 com\example\DriverApp\DTO\PasswordResetWithOtpRequest.class
 com\example\DriverApp\Repositories\NotificationRepository.class
@@ -55,7 +55,6 @@ com\example\DriverApp\Controller\RideController.class
 com\example\DriverApp\Utility\JwtUtil.class
 com\example\DriverApp\Controller\UploadController.class
 com\example\DriverApp\Repositories\ServiceRepository.class
-com\example\DriverApp\Controller\DriverLocationController.class
 com\example\DriverApp\Repositories\DriverLocationRepository.class
 com\example\DriverApp\Service\DriverAvailabilityService.class
 com\example\DriverApp\Repositories\ProductsRepository.class
@@ -70,6 +69,7 @@ com\example\DriverApp\DTO\PasswordResetRequestDTO.class
 com\example\DriverApp\DTO\RideRequestWithCustomerDTO.class
 com\example\DriverApp\Service\TokenStorage.class
 com\example\DriverApp\Controller\UberIntegrationController.class
+com\example\DriverApp\SocketIo\SocketIOClient$2.class
 com\example\DriverApp\Entities\Customer.class
 com\example\DriverApp\Repositories\CarServiceRepository.class
 com\example\DriverApp\Controller\QRCodeController.class
@@ -85,7 +85,6 @@ com\example\DriverApp\Entities\Admin.class
 com\example\DriverApp\Service\CustomerService.class
 com\example\DriverApp\Repositories\DriverRepository.class
 com\example\DriverApp\Entities\RideRequest.class
-com\example\DriverApp\PushNotification\FirebaseNotificationService.class
 com\example\DriverApp\Controller\MoverController.class
 com\example\DriverApp\DTO\ApiResponse.class
 com\example\DriverApp\Service\EmailService.class
@@ -93,3 +92,4 @@ com\example\DriverApp\Entities\DriverLocationEntity.class
 com\example\DriverApp\Entities\PendingDriver.class
 com\example\DriverApp\Repositories\PendingDriverRepository.class
 com\example\DriverApp\Service\AdminService.class
+com\example\DriverApp\SocketIo\SocketIOClient.class

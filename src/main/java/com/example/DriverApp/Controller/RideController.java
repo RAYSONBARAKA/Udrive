@@ -1,16 +1,16 @@
 package com.example.DriverApp.Controller;
 
-import java.util.List;
+import com.example.DriverApp.DTO.ApiResponse;
+import com.example.DriverApp.Entities.RideRequest;
+import com.example.DriverApp.Service.RideService;
+import com.example.DriverApp.Service.RideService.CarServiceResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.DriverApp.DTO.ApiResponse;
-import com.example.DriverApp.Entities.RideRequest;
-import com.example.DriverApp.Service.RideService;
-import com.example.DriverApp.Service.RideService.CarServiceResponse;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/open/rides")
@@ -20,7 +20,7 @@ public class RideController {
     @Autowired
     private RideService rideService;
 
-    // Calculate price endpoint
+    // Endpoint to calculate the price of a ride
     @GetMapping("/calculate-price")
     public ResponseEntity<Double> calculatePrice(
             @RequestParam Long customerId,
@@ -33,7 +33,7 @@ public class RideController {
         return ResponseEntity.ok(price);
     }
 
-    // Get all vehicle types with prices for a given service name and drop-off location
+    // Endpoint to get all vehicle types with prices for a given service name and location
     @GetMapping("/{id}/{serviceName}/{dropOffLatitude}/{dropOffLongitude}")
     public ResponseEntity<List<CarServiceResponse>> getAllVehicleTypesWithPrices(
             @PathVariable Long id,
@@ -41,37 +41,40 @@ public class RideController {
             @PathVariable double dropOffLatitude,
             @PathVariable double dropOffLongitude) {
 
-        List<CarServiceResponse> carServiceResponses = rideService.getAllVehicleTypesWithPrices(serviceName, id, dropOffLatitude, dropOffLongitude);
-        return ResponseEntity.ok(carServiceResponses);  
+        List<CarServiceResponse> carServiceResponses = rideService.getAllVehicleTypesWithPrices(
+                serviceName, id, dropOffLatitude, dropOffLongitude);
+        return ResponseEntity.ok(carServiceResponses);
     }
 
-    // Send ride request to drivers with the same vehicle type
+    // Endpoint to send ride requests to drivers
     @PostMapping("/send-request")
     public ResponseEntity<List<RideRequest>> sendRequestToDrivers(
             @RequestParam Long customerId,
             @RequestParam String vehicleType,
             @RequestParam double dropOffLatitude,
             @RequestParam double dropOffLongitude,
-            @RequestParam Long serviceId) {  
-        
-        List<RideRequest> rideRequests = rideService.sendRequestToDriversWithSameVehicleType(customerId, vehicleType, dropOffLatitude, dropOffLongitude, serviceId);
+            @RequestParam Long serviceId) {
+
+        List<RideRequest> rideRequests = rideService.sendRequestToDriversWithSameVehicleType(
+                customerId, vehicleType, dropOffLatitude, dropOffLongitude, serviceId);
         return ResponseEntity.ok(rideRequests);
     }
 
-    // Get all pending ride requests for a driver
+    // Endpoint to get pending ride requests for a driver
     @GetMapping("/ride-requests/pending")
     public ResponseEntity<List<RideRequest>> getPendingRideRequests(
             @RequestParam Long driverId) {
-        
+
         List<RideRequest> pendingRequests = rideService.getPendingRideRequestsForDriver(driverId);
         return ResponseEntity.ok(pendingRequests);
     }
 
+    // Endpoint for a driver to accept a ride request
     @PostMapping("/accept")
     public ResponseEntity<ApiResponse<String>> acceptRideRequest(
             @RequestParam Long driverId,
             @RequestParam Long rideRequestId) {
-    
+
         try {
             rideService.acceptRideRequest(driverId, rideRequestId);
             ApiResponse<String> response = new ApiResponse<>(HttpStatus.OK, "Success", "Ride request accepted successfully.");
@@ -81,21 +84,24 @@ public class RideController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
-    
-            
-    
 
-    // Reject a ride request
-    @PostMapping("/ride-requests/reject")
-    public ResponseEntity<RideRequest> rejectRideRequest(
-            @RequestParam Long driverId, 
+    // Endpoint for a driver to reject a ride request
+    @PostMapping("/reject")
+    public ResponseEntity<ApiResponse<String>> rejectRideRequest(
+            @RequestParam Long driverId,
             @RequestParam Long rideRequestId) {
 
-        RideRequest rejectedRequest = rideService.rejectRideRequest(driverId, rideRequestId);
-        return ResponseEntity.ok(rejectedRequest);
+        try {
+            rideService.rejectRideRequest(driverId, rideRequestId);
+            ApiResponse<String> response = new ApiResponse<>(HttpStatus.OK, "Success", "Ride request rejected successfully.");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            ApiResponse<String> response = new ApiResponse<>(HttpStatus.BAD_REQUEST, null, e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
     }
 
-    // End the trip
+    // Endpoint to end a trip
     @PostMapping("/end/{rideRequestId}")
     public ResponseEntity<String> endTrip(@PathVariable Long rideRequestId) {
         try {
@@ -106,4 +112,7 @@ public class RideController {
         }
     }
 
+
+
+        
 }

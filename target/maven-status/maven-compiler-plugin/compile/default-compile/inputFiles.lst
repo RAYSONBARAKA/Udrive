@@ -10,6 +10,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\DriverContr
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\DriverLocationController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\LocationWebSocketController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\MoverController.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\NotificationController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\ProductsController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\QRCodeController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\RideController.java
@@ -53,7 +54,6 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\RideHistory.j
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\RideRequest.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\ServiceEntity.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\TypeDef.java
-C:\Projects\DriverApp\src\main\java\com\example\DriverApp\PushNotification\FirebaseNotificationService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\AdminRepository.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\CarServiceRepository.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\CustomerLocationRepository.java
@@ -84,6 +84,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\QRCodeService.
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\RideService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\ServiceService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\TokenStorage.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\SocketIo\SocketIOClient.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Utility\JwtUtil.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Utility\Mapper.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Utility\SwaggerConf.java

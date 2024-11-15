@@ -18,54 +18,37 @@ import com.example.DriverApp.Utility.JwtUtil;
 
 @SpringBootApplication
 @EnableScheduling 
-// @ComponentScan(basePackages = {"com.example.DriverApp.Config", "com.example.DriverApp.Service", "com.example.DriverApp.Controller"})
+public class DriverAppApplication implements CommandLineRunner {
 
-public class DriverAppApplication  implements CommandLineRunner{
-
-
-@Autowired
+    @Autowired
     private Cloudinary cloudinary;
 
-	public static void main(String[] args) {
-		SpringApplication.run(DriverAppApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(DriverAppApplication.class, args);
+    }
 
-
-
-	
-	@Bean
-	PasswordEncoder passwordEncoder(){
-		return new BCryptPasswordEncoder();
-	}
-
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
-}
- @Bean
-    public ExecutorService executorService() {
-        return Executors.newFixedThreadPool(10); 
     }
-
-    @EnableScheduling
-public class Application {
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
-}
 
     @Bean
-    public JwtUtil jwtUtil()
-    {
+    public ExecutorService executorService() {
+        return Executors.newFixedThreadPool(10);
+    }
+
+    @Bean
+    public JwtUtil jwtUtil() {
         return new JwtUtil();
     }
 
-
-
-
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         if (cloudinary != null) {
             System.out.println("Cloudinary bean initialized successfully!");
         } else {
@@ -73,12 +56,3 @@ public class Application {
         }
     }
 }
-
-
-	
-
-
-
-
-
-

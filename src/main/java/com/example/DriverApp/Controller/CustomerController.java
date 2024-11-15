@@ -8,8 +8,7 @@ import com.example.DriverApp.Entities.Customer;
 import com.example.DriverApp.Entities.Driver;
 import com.example.DriverApp.Service.CustomerService;
 import com.example.DriverApp.Service.RideService;
-import com.example.DriverApp.Service.RideService.DriverLocation;
-
+ 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
