@@ -17,7 +17,7 @@ public class SocketIOClient {
     public Socket creaSocket() {
         try {
             // Create a Socket.IO connection to the server
-            Socket socket = IO.socket("http://localhost:9092");
+            Socket socket = IO.socket("https://webserver-xqjo.onrender.com");
 
             // Listen for connection
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
