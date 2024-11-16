@@ -6,6 +6,7 @@ com\example\DriverApp\Service\DriverLocationService.class
 com\example\DriverApp\Entities\PrimaryTable.class
 com\example\DriverApp\Utility\Mapper.class
 com\example\DriverApp\Controller\AdminController.class
+com\example\DriverApp\SocketIo\SocketIOClient$1.class
 com\example\DriverApp\DTO\CarTypeWithPriceDTO.class
 com\example\DriverApp\DTO\ChangePasswordRequest.class
 com\example\DriverApp\Repositories\CustomerRepository.class
@@ -46,6 +47,7 @@ com\example\DriverApp\DTO\RidesResponse.class
 com\example\DriverApp\Service\ServiceService.class
 com\example\DriverApp\Entities\CarService.class
 com\example\DriverApp\WebSocketHandler\RideRequestWebSocketHandler.class
+com\example\DriverApp\SocketIo\SocketIOClient$3.class
 com\example\DriverApp\Configuration\WebSocketConfig.class
 com\example\DriverApp\DTO\PasswordResetWithOtpRequest.class
 com\example\DriverApp\Repositories\NotificationRepository.class
@@ -67,6 +69,7 @@ com\example\DriverApp\DTO\PasswordResetRequestDTO.class
 com\example\DriverApp\DTO\RideRequestWithCustomerDTO.class
 com\example\DriverApp\Service\TokenStorage.class
 com\example\DriverApp\Controller\UberIntegrationController.class
+com\example\DriverApp\SocketIo\SocketIOClient$2.class
 com\example\DriverApp\Entities\Customer.class
 com\example\DriverApp\Repositories\CarServiceRepository.class
 com\example\DriverApp\Controller\QRCodeController.class
