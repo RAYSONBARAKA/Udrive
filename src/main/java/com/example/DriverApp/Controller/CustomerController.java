@@ -36,10 +36,24 @@ public class CustomerController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Customer>> saveCustomer(@RequestBody Customer customer) {
-        Customer savedCustomer = customerService.saveCustomer(customer);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(HttpStatus.CREATED, savedCustomer, "Customer created successfully."));
-    }
+        try {
+            // Save customer and handle response
+            Customer savedCustomer = customerService.saveCustomer(customer);
 
+            // Return success response
+            ApiResponse<Customer> response = new ApiResponse<>(HttpStatus.CREATED, savedCustomer, "Customer created successfully.");
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            
+        } catch (RuntimeException e) {
+            // Return error response if customer already exists or other issues
+            ApiResponse<Customer> response = new ApiResponse<>(HttpStatus.BAD_REQUEST, null, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (Exception e) {
+            // Handle general errors
+            ApiResponse<Customer> response = new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal server error.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Customer>> getCustomerById(@PathVariable Long id) {
         ApiResponse<Customer> response = customerService.getCustomerById(id);

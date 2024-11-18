@@ -27,7 +27,6 @@ public class DriverController {
 
     @Autowired
     private DriverService driverService;
-
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Driver>> registerDriver(
             @RequestParam("driver") String driverJson,
@@ -36,7 +35,15 @@ public class DriverController {
             @RequestParam("insuranceDetailsFile") MultipartFile insuranceDetailsFile) {
 
         try {
+            // Deserialize JSON string to Driver object
             Driver driver = Mapper.stringToClass(driverJson, Driver.class);
+
+            // Handle null deserialization
+            if (driver == null) {
+                throw new Exception("Invalid driver JSON. Deserialization resulted in null.");
+            }
+
+            // Save driver
             Driver savedDriver = driverService.saveDriver(driver, criminalBackgroundCheckFile, licenseNumberFile, insuranceDetailsFile);
 
             return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK, savedDriver, "Driver registered successfully. Awaiting approval."));

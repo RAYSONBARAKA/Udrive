@@ -51,8 +51,7 @@ private NotificationRepository notificationRepository;
     private EmailService emailService;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private final String uploadDirectory = "C:\\Users\\RAYSON\\Pictures\\Saved Pictures\\";
-
+ 
     // OTP storage
     private String generatedOtp;
     private String otpEmail;
