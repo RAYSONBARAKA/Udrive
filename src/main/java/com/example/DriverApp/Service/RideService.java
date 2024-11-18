@@ -63,23 +63,28 @@ private EmailService emailService;
         }
     }
 
-    // Get vehicle types with estimated prices based on distance
-    public List<CarServiceResponse> getAllVehicleTypesWithPrices(String serviceName, Long customerId, double dropOffLatitude, double dropOffLongitude) {
-        List<CarService> carServices = carServiceRepository.findByServiceName(serviceName);
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+ // Get vehicle types with estimated prices based on distance
+public List<CarServiceResponse> getAllVehicleTypesWithPrices(String serviceName, Long customerId, double dropOffLatitude, double dropOffLongitude) {
+    // Fetch car services for the given service name
+    List<CarService> carServices = carServiceRepository.findByServiceName(serviceName);
 
-        double pickupLatitude = customer.getLatitude();
-        double pickupLongitude = customer.getLongitude();
+    // Fetch the customer's pickup location
+    Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        return carServices.stream()
-                .map(carService -> {
-                    double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
-                    double price = distance * carService.getRatePerKm();
-                    return new CarServiceResponse(carService.getVehicleType(), price);
-                })
-                .collect(Collectors.toList());
-    }
+    double pickupLatitude = customer.getLatitude();
+    double pickupLongitude = customer.getLongitude();
+
+    // Calculate price for each vehicle type in each car service
+    return carServices.stream()
+            .flatMap(carService -> carService.getVehicleType().stream().map(vehicleType -> {
+                double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
+                long price = Math.round(distance * carService.getRatePerKm()); // Round price to nearest whole number
+                return new CarServiceResponse(vehicleType, price);
+            }))
+            .collect(Collectors.toList());
+}
+
 
    // Calculate distance using the Haversine formula
    public double calculatePrice(Long customerId, String serviceName, String vehicleType, double dropOffLatitude, double dropOffLongitude) {

@@ -11,45 +11,69 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/open/services")
-
 @CrossOrigin(origins = "*")
 public class CarServiceController {
 
     @Autowired
     private CarServiceService carServiceService;
 
-    // Endpoint to get a Car Service by serviceName for editing
-    @GetMapping("/edit/{serviceName}")
-    public ResponseEntity<CarService> editCarService(@PathVariable String serviceName) {
-        List<CarService> carServices = carServiceService.getCarServicesByServiceName(serviceName);
-        if (carServices.isEmpty()) {
-            return ResponseEntity.notFound().build();
+    // Endpoint to add a single Car Service
+    @PostMapping("/add")
+    public ResponseEntity<CarService> addCarService(@RequestBody CarService carService) {
+        if (carService == null) {
+            return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(carServices.get(0)); // Return the first service found for simplicity
+        CarService savedCarService = carServiceService.saveCarService(carService);
+        return ResponseEntity.ok(savedCarService);
     }
 
-    // Endpoint to update Car Service details by serviceName
+    // Endpoint to add multiple Car Services
+    @PostMapping("/addAll")
+    public ResponseEntity<List<CarService>> addCarServices(@RequestBody List<CarService> carServices) {
+        if (carServices == null || carServices.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<CarService> savedCarServices = carServiceService.saveAllCarServices(carServices);
+        return ResponseEntity.ok(savedCarServices);
+    }
+
+    // Endpoint to update Car Services by serviceName
     @PutMapping("/update/{serviceName}")
-    public ResponseEntity<CarService> updateCarService(@PathVariable String serviceName, @RequestBody CarService updatedService) {
-        CarService updatedCarService = carServiceService.updateCarService(serviceName, updatedService);
-        if (updatedCarService != null) {
-            return ResponseEntity.ok(updatedCarService);
+    public ResponseEntity<List<CarService>> updateCarServices(
+            @PathVariable String serviceName,
+            @RequestBody List<CarService> updatedServices) {
+        List<CarService> updatedCarServices = carServiceService.updateCarServices(serviceName, updatedServices);
+        if (updatedCarServices != null) {
+            return ResponseEntity.ok(updatedCarServices);
         }
         return ResponseEntity.notFound().build();
     }
 
-    // Endpoint to add multiple Car Services
-    @PostMapping("/add")
-    public ResponseEntity<List<CarService>> addCarServices(@RequestBody List<CarService> carServices) {
-        if (carServices == null || carServices.isEmpty()) {
-            return ResponseEntity.badRequest().build(); // Return bad request if no services are provided
+    // Endpoint to get Car Services by serviceName
+    @GetMapping("/get/{serviceName}")
+    public ResponseEntity<List<CarService>> getCarServicesByServiceName(@PathVariable String serviceName) {
+        List<CarService> carServices = carServiceService.getCarServicesByServiceName(serviceName);
+        if (carServices.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-
-        List<CarService> savedCarServices = carServiceService.saveAllCarServices(carServices);
-        return ResponseEntity.ok(savedCarServices); // Return the list of saved car services
+        return ResponseEntity.ok(carServices);
     }
 
-    // Endpoint to get all vehicle types with estimated prices for a given service name and drop-off location
+    // Endpoint to get all Car Services
+    @GetMapping("/all")
+    public ResponseEntity<List<CarService>> getAllCarServices() {
+        List<CarService> carServices = carServiceService.getAllCarServices();
+        return ResponseEntity.ok(carServices);
+    }
+
+    // Endpoint to delete a Car Service by ID
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteCarService(@PathVariable Long id) {
+        carServiceService.deleteCarService(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Endpoint to get all vehicle types with estimated prices
     @GetMapping("/prices")
     public ResponseEntity<List<CarServiceService.CarServiceResponse>> getAllVehicleTypesWithPrices(
             @RequestParam String serviceName,
@@ -57,10 +81,8 @@ public class CarServiceController {
             @RequestParam double dropOffLatitude,
             @RequestParam double dropOffLongitude) {
 
-        // Get all car services with prices for the given service name, customer ID, and drop-off location
-        List<CarServiceService.CarServiceResponse> carServiceResponses = carServiceService.getAllVehicleTypesWithPrices(
+        List<CarServiceService.CarServiceResponse> responses = carServiceService.getAllVehicleTypesWithPrices(
                 serviceName, customerId, dropOffLatitude, dropOffLongitude);
-
-        return ResponseEntity.ok(carServiceResponses); // Return the list of vehicle types and their prices
+        return ResponseEntity.ok(responses);
     }
 }
