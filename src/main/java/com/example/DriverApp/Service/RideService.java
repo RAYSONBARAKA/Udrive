@@ -2,13 +2,14 @@ package com.example.DriverApp.Service;
 
 import io.socket.client.Socket;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import com.example.DriverApp.Entities.*;
 import com.example.DriverApp.Repositories.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
+ 
 @Service
 public class RideService {
 
@@ -23,6 +24,10 @@ public class RideService {
     private NotificationService notificationService;
 
     @Autowired
+private EmailService emailService;
+
+
+    @Autowired
     private RideRequestRepository rideRequestRepository;
 
     @Autowired
@@ -33,6 +38,9 @@ public class RideService {
 
     @Autowired
     private CarServiceRepository carServiceRepository;
+
+      @Autowired
+    private JavaMailSender mailSender;
 
  
     
@@ -73,74 +81,73 @@ public class RideService {
                 .collect(Collectors.toList());
     }
 
-    // Calculate distance using the Haversine formula
-    public double calculatePrice(Long customerId, String serviceName, String vehicleType, double dropOffLatitude, double dropOffLongitude) {
-        // Retrieve customer by customerId
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-    
-        // Calculate distance using customer and drop-off coordinates
-        double pickupLatitude = customer.getLatitude();
-        double pickupLongitude = customer.getLongitude();
-        double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
-    
-        // Retrieve specific car service by serviceName and vehicleType
-        CarService carService = carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
-                .orElseThrow(() -> new RuntimeException("Car service not available for selected type and service"));
-    
-        // Return the calculated price
-        return distance * carService.getRatePerKm();
-    }
-    
-    // Haversine formula for distance calculation
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int EARTH_RADIUS = 6371; // Earth radius in kilometers
-    
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-    
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-    
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    
-        return EARTH_RADIUS * c;
-    }
-    
+   // Calculate distance using the Haversine formula
+   public double calculatePrice(Long customerId, String serviceName, String vehicleType, double dropOffLatitude, double dropOffLongitude) {
+    // Retrieve customer by customerId
+    Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-    // Accept a ride request
-    public RideRequest acceptRideRequest(Long driverId, Long rideRequestId) {
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Driver not found"));
+    // Calculate distance using customer and drop-off coordinates
+    double pickupLatitude = customer.getLatitude();
+    double pickupLongitude = customer.getLongitude();
+    double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
 
-        RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
-                .orElseThrow(() -> new RuntimeException("Ride request not found"));
+    // Retrieve specific car service by serviceName and vehicleType
+    CarService carService = carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
+            .orElseThrow(() -> new RuntimeException("Car service not available for selected type and service"));
 
-        if (!"Pending".equals(rideRequest.getStatus())) {
-            throw new RuntimeException("This ride request cannot be accepted as it is no longer pending.");
-        }
+    // Return the calculated price
+    return distance * carService.getRatePerKm();
+}
 
-        rideRequest.setStatus("Accepted");
-        rideRequest.setDriver(driver);
+// Haversine formula for distance calculation
+private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    final int EARTH_RADIUS = 6371; // Earth radius in kilometers
 
-        String messageBody = "Hello, your ride request has been accepted by "
-                + driver.getFullName()
-                + ". Your driver will arrive shortly.";
+    double latDistance = Math.toRadians(lat2 - lat1);
+    double lonDistance = Math.toRadians(lon2 - lon1);
 
-        notificationService.createNotification(rideRequest.getCustomer(), driver, messageBody);
+    double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+            + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+            * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
 
-        String deviceToken = rideRequest.getCustomer().getToken();
+    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        if (socket.connected()) {
-            socket.emit("rideAccepted", deviceToken, messageBody);
-            System.out.println("Sent ride acceptance message to server: " + messageBody);
-        } else {
-            System.out.println("Socket is not connected. Unable to send notification.");
-        }
+    return EARTH_RADIUS * c;
+}
 
-        return rideRequestRepository.save(rideRequest);
-    }
+    // // Accept a ride request
+    // public RideRequest acceptRideRequest(Long driverId, Long rideRequestId) {
+    //     Driver driver = driverRepository.findById(driverId)
+    //             .orElseThrow(() -> new RuntimeException("Driver not found"));
+
+    //     RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
+    //             .orElseThrow(() -> new RuntimeException("Ride request not found"));
+
+    //     if (!"Pending".equals(rideRequest.getStatus())) {
+    //         throw new RuntimeException("This ride request cannot be accepted as it is no longer pending.");
+    //     }
+
+    //     rideRequest.setStatus("Accepted");
+    //     rideRequest.setDriver(driver);
+
+    //     String messageBody = "Hello, your ride request has been accepted by "
+    //             + driver.getFullName()
+    //             + ". Your driver will arrive shortly.";
+
+    //     notificationService.createNotification(rideRequest.getCustomer(), driver, messageBody);
+
+    //     String deviceToken = rideRequest.getCustomer().getToken();
+
+    //     if (socket.connected()) {
+    //         socket.emit("rideAccepted", deviceToken, messageBody);
+    //         System.out.println("Sent ride acceptance message to server: " + messageBody);
+    //     } else {
+    //         System.out.println("Socket is not connected. Unable to send notification.");
+    //     }
+
+    //     return rideRequestRepository.save(rideRequest);
+    // }
 
     // Send requests to drivers with the same vehicle type
     public List<RideRequest> sendRequestToDriversWithSameVehicleType(Long customerId, String vehicleType, double dropOffLatitude, double dropOffLongitude, Long serviceId) {
@@ -174,6 +181,42 @@ public class RideService {
         }
         return rideRequests;
     }
+
+
+
+
+    public RideRequest acceptRideRequest(Long driverId, Long rideRequestId) {
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new RuntimeException("Driver not found"));
+    
+        RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
+                .orElseThrow(() -> new RuntimeException("Ride request not found"));
+    
+        if (!"Pending".equals(rideRequest.getStatus())) {
+            throw new RuntimeException("This ride request cannot be accepted as it is no longer pending.");
+        }
+    
+        rideRequest.setStatus("Accepted");
+        rideRequest.setDriver(driver);
+    
+        // Send notification email to the customer
+        String customerEmail = rideRequest.getCustomer().getEmail();
+        String customerName = rideRequest.getCustomer().getFirstName();
+        String driverName = driver.getFullName();
+    
+         emailService.sendRideAcceptedEmail(customerEmail, customerName, driverName);
+    
+        return rideRequestRepository.save(rideRequest);
+    }
+    
+
+
+
+
+
+
+
+
 
     // Other methods like rejectRideRequest, updateDriverLocation, endTrip, etc.
     public RideRequest rejectRideRequest(Long driverId, Long rideRequestId) {

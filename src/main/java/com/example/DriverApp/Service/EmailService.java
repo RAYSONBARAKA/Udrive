@@ -13,11 +13,15 @@ public class EmailService {
     @Autowired
     private JavaMailSender emailSender;
 
+    
+
     // Send registration email with the activation code
     public void sendRegistrationEmail(String recipientEmail, String activationCode) {
         String htmlContent = generateRegistrationEmailContent(activationCode);
         sendEmail(recipientEmail, "Activate Your Account", htmlContent);
     }
+
+    
 
     // Send deletion email to notify the user
     public void sendDeletionEmail(String recipientEmail, String customerName) {
@@ -133,6 +137,21 @@ public class EmailService {
                 "<p>If you have any questions, please contact support.</p>" +
                 "</div></body></html>";
     }
+
+
+    public void sendRideAcceptedEmail(String recipientEmail, String customerName, String driverName) {
+        String subject = "Your Ride Request Has Been Accepted";
+        String htmlContent = "<html><body style='font-family: Arial, sans-serif;'>" +
+                "<div style='background-color: #d4edda; padding: 20px; border-radius: 8px;'>" +
+                "<h2 style='color: #155724;'>Ride Accepted!</h2>" +
+                "<p>Dear " + customerName + ",</p>" +
+                "<p>Your ride request has been accepted by " + driverName + ".</p>" +
+                "<p>Your driver will arrive shortly. Please be ready at your pickup location.</p>" +
+                "<p>Thank you for using Udrive!</p>" +
+                "</div></body></html>";
+        sendEmail(recipientEmail, subject, htmlContent);
+    }
+    
 
 
    
