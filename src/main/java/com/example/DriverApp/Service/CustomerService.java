@@ -5,7 +5,6 @@ import com.example.DriverApp.DTO.ApiResponse;
 import com.example.DriverApp.DTO.CustomerDTO;
 import com.example.DriverApp.DTO.LoginResponse;
 import com.example.DriverApp.Entities.Customer;
-import com.example.DriverApp.Entities.Driver;
 import com.example.DriverApp.Repositories.CustomerRepository;
 import com.example.DriverApp.Utility.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 @Service
 public class CustomerService {
@@ -40,20 +38,18 @@ public class CustomerService {
     @Autowired
     private EmailService emailService;
 
-    private final String customerUploadDirectory = "C:/Users/RAYSON/Pictures/CustomerPictures"; // Temporary, prefer using a cloud solution like S3 or Cloudinary
+    private final String customerUploadDirectory = "C:/Users/RAYSON/Pictures/CustomerPictures"; // Temporary
 
     // ==================== Customer Management ====================
 
     public Customer saveCustomer(Customer requestCustomer) {
-        // Check if customer already exists by email or phone number
         if (customerRepository.findByEmail(requestCustomer.getEmail()).isPresent()) {
             throw new RuntimeException("A customer with this email is already registered.");
         }
         if (customerRepository.findByPhoneNumber(requestCustomer.getPhoneNumber()).isPresent()) {
             throw new RuntimeException("A customer with this phone number is already registered.");
         }
-        
-        // Creating new customer object
+
         Customer newCustomer = new Customer();
         newCustomer.setFirstName(requestCustomer.getFirstName());
         newCustomer.setLastName(requestCustomer.getLastName());
@@ -89,7 +85,6 @@ public class CustomerService {
 
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();
-            // Validate activation code expiration
             if (customer.getActivationCodeGeneratedTime() != null) {
                 long minutesSinceGenerated = ChronoUnit.MINUTES.between(customer.getActivationCodeGeneratedTime(), LocalDateTime.now());
                 if (minutesSinceGenerated > 1440) {
@@ -97,7 +92,6 @@ public class CustomerService {
                 }
             }
 
-            // Activate the account
             customer.setActive(true);
             customerRepository.save(customer);
             return "Account activated successfully.";
@@ -107,44 +101,31 @@ public class CustomerService {
     }
 
     public LoginResponse loginCustomer(String email, String password, double latitude, double longitude) {
-        // Look up the customer by email
         Optional<Customer> customerOptional = customerRepository.findByEmail(email);
     
-        // Check if the customer exists
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();
     
-            // Check if the customer account is active
             if (!customer.isActive()) {
                 return null; // Account is not activated
             }
     
-            // Validate the password (assuming the JWT utility validates the password with the token)
             if (jwtUtil.validateToken(customer.getPassword(), password)) {
-                // Update customer's location and last login time
-                customer.setLastLoginTime(LocalDateTime.now()); // Set last login time
-                customer.setLatitude(latitude); // Set latitude
-                customer.setLongitude(longitude); // Set longitude
+                customer.setLastLoginTime(LocalDateTime.now());
+                customer.setLatitude(latitude);
+                customer.setLongitude(longitude);
     
-                // Generate JWT token for the customer with a 28-hour expiration
                 String token = jwtUtil.generateTokenWithExpiration(customer.getEmail(), 28);
-    
-                // Store the token in the customer's record
                 customer.setToken(token);
-    
-                // Save the updated customer entity
                 customerRepository.save(customer);
     
-                // Return LoginResponse with user ID and token
                 return new LoginResponse(customer.getId(), token);
             }
         }
     
-        // Return null if the login failed (invalid credentials, inactive account, or password mismatch)
         return null;
     }
-    
-    
+
     public ApiResponse<String> updateLocation(Long customerId, double latitude, double longitude) {
         Optional<Customer> customerOptional = customerRepository.findById(customerId);
 
@@ -160,7 +141,7 @@ public class CustomerService {
     }
 
     // ==================== Profile Picture ====================
-    
+
     public ApiResponse<String> uploadCustomerPicture(Long customerId, MultipartFile file) {
         try {
             Optional<Customer> customerOptional = customerRepository.findById(customerId);
@@ -168,12 +149,10 @@ public class CustomerService {
                 return new ApiResponse<>(HttpStatus.NOT_FOUND, null, "Customer not found.");
             }
 
-            // Upload picture to Cloudinary
             Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap("public_id", "customers/" + customerId + "_" + file.getOriginalFilename()));
             String pictureUrl = (String) uploadResult.get("secure_url");
 
-            // Save picture URL in customer object
             Customer customer = customerOptional.get();
             customer.setPicturePath(pictureUrl);
             customerRepository.save(customer);
@@ -203,8 +182,14 @@ public class CustomerService {
         }
     }
 
+    private byte[] fetchImageBytesFromUrl(String url) throws IOException {
+        try (InputStream in = new URL(url).openStream()) {
+            return in.readAllBytes();
+        }
+    }
+
     // ==================== Deactivate and Activate Account ====================
-    
+
     public ApiResponse<String> deactivateAccount(Long customerId) {
         Optional<Customer> customerOptional = customerRepository.findById(customerId);
 
@@ -240,7 +225,7 @@ public class CustomerService {
     }
 
     // ==================== Reset Password with OTP ====================
-    
+
     public ApiResponse<String> resetPasswordWithOtp(String email, String otp, String newPassword) {
         Optional<Customer> customerOptional = customerRepository.findByEmail(email);
 
@@ -254,8 +239,7 @@ public class CustomerService {
             return new ApiResponse<>(HttpStatus.BAD_REQUEST, null, "Invalid OTP.");
         }
 
-        // Update the password
-        String hashedPassword = jwtUtil.generateTokenWithExpiration(newPassword, 28);  // Ensure password is hashed properly
+        String hashedPassword = jwtUtil.generateTokenWithExpiration(newPassword, 28);
         customer.setPassword(hashedPassword);
         customerRepository.save(customer);
 
@@ -279,22 +263,11 @@ public class CustomerService {
         return new ApiResponse<>(HttpStatus.OK, null, "OTP sent successfully.");
     }
 
-    // Helper method to generate OTP
     private String generateOtp() {
         Random random = new Random();
         int otp = 100000 + random.nextInt(900000);  // Generate a 6-digit OTP
         return String.valueOf(otp);
     }
-    
-    // Helper method to fetch image bytes
-    private byte[] fetchImageBytesFromUrl(String url) throws IOException {
-        try (InputStream in = new URL(url).openStream()) {
-            return in.readAllBytes();
-        }
-    }
-
-
-
 
     public ApiResponse<Customer> getCustomerById(Long id) {
         Optional<Customer> customerOptional = customerRepository.findById(id);
@@ -308,7 +281,7 @@ public class CustomerService {
     }
 
     // ==================== Other Methods ====================
-    
+
     public ApiResponse<String> deleteCustomer(Long id) {
         Optional<Customer> customerOptional = customerRepository.findById(id);
         
@@ -325,11 +298,9 @@ public class CustomerService {
         
         if (customerOptional.isPresent()) {
             Customer existingCustomer = customerOptional.get();
-            // Update the fields as necessary
             existingCustomer.setFirstName(updatedCustomer.getFirstName());
             existingCustomer.setLastName(updatedCustomer.getLastName());
             existingCustomer.setEmail(updatedCustomer.getEmail());
-            // ... continue updating other fields
 
             Customer savedCustomer = customerRepository.save(existingCustomer);
             return new ApiResponse<>(HttpStatus.OK, savedCustomer, "Customer updated successfully.");
@@ -343,4 +314,3 @@ public class CustomerService {
         return new ApiResponse<>(HttpStatus.OK, customers, "All customers retrieved successfully.");
     }
 }
-    
