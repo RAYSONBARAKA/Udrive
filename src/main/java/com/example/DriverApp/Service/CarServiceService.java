@@ -1,5 +1,7 @@
 package com.example.DriverApp.Service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -8,9 +10,6 @@ import com.example.DriverApp.Entities.Customer;
 import com.example.DriverApp.Repositories.CarServiceRepository;
 import com.example.DriverApp.Repositories.CustomerRepository;
 import com.example.DriverApp.DTO.CarServiceResponse;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CarServiceService {
@@ -21,37 +20,29 @@ public class CarServiceService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    // Create or Update a Car Service
+    // Create or Update a single Car Service
     public CarService saveCarService(CarService carService) {
         return carServiceRepository.save(carService);
     }
 
-    // Create or Update multiple Car Services
-    public List<CarService> saveAllCarServices(List<CarService> carServices) {
-        return carServiceRepository.saveAll(carServices);
+    // Get a single Car Service by serviceName and vehicleType
+    public CarService getCarServiceByServiceNameAndVehicleType(String serviceName, String vehicleType) {
+        return carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
+                .orElseThrow(() -> new RuntimeException("Car Service not found"));
     }
 
-    // Read/Get Car Services by serviceName
-    public List<CarService> getCarServicesByServiceName(String serviceName) {
-        return carServiceRepository.findAllByServiceName(serviceName);
-    }
+    // Update a single Car Service by serviceName and vehicleType
+    public CarService updateCarService(String serviceName, String vehicleType, CarService updatedService) {
+        CarService existingService = carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
+                .orElseThrow(() -> new RuntimeException("Car Service not found"));
 
-    // Update Car Services by serviceName
-    public List<CarService> updateCarServices(String serviceName, List<CarService> updatedServices) {
-        List<CarService> existingServices = carServiceRepository.findAllByServiceName(serviceName);
-        if (!existingServices.isEmpty()) {
-            for (int i = 0; i < existingServices.size() && i < updatedServices.size(); i++) {
-                CarService existingService = existingServices.get(i);
-                CarService updatedService = updatedServices.get(i);
+        existingService.setDescription(updatedService.getDescription());
+        existingService.setVehicleType(updatedService.getVehicleType());
+        existingService.setRatePerKm(updatedService.getRatePerKm());
+        existingService.setName(updatedService.getName());
+        existingService.setDistance(updatedService.getDistance());
 
-                existingService.setDescription(updatedService.getDescription());
-                existingService.setVehicleType(updatedService.getVehicleType());
-                existingService.setRatePerKm(updatedService.getRatePerKm());
-                carServiceRepository.save(existingService);
-            }
-            return carServiceRepository.findAllByServiceName(serviceName);
-        }
-        return null;
+        return carServiceRepository.save(existingService);
     }
 
     // Get all Car Services
@@ -64,31 +55,27 @@ public class CarServiceService {
         carServiceRepository.deleteById(id);
     }
 
-    public List<CarServiceResponse> getAllVehicleTypesWithPrices(
-        String serviceName, Long customerId, double dropOffLatitude, double dropOffLongitude) {
-    List<CarService> carServices = carServiceRepository.findAllByServiceName(serviceName);
+    // Get vehicle type with price for a specific service
+    public CarServiceResponse getVehicleTypeWithPrice(String serviceName, String vehicleType,
+                                                      Long customerId, double dropOffLatitude, double dropOffLongitude) {
+        CarService carService = carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
+                .orElseThrow(() -> new RuntimeException("Car Service not found"));
 
-    Customer customer = customerRepository.findById(customerId)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-    double pickupLatitude = customer.getLatitude();
-    double pickupLongitude = customer.getLongitude();
+        double pickupLatitude = customer.getLatitude();
+        double pickupLongitude = customer.getLongitude();
 
-    return carServices.stream()
-            .map(carService -> {
-                double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
-                double price = distance * carService.getRatePerKm();
+        double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
+        double price = distance * carService.getRatePerKm();
 
-                // Return CarServiceResponse with the list of vehicle types
-                return new CarServiceResponse(carService.getVehicleType(), carService.getRatePerKm(), price);
-            })
-            .collect(Collectors.toList());
-}
-
+        return new CarServiceResponse(carService.getVehicleType(), carService.getRatePerKm(), price);
+    }
 
     // Haversine formula to calculate distance in kilometers
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int EARTH_RADIUS = 6371;  
+        final int EARTH_RADIUS = 6371; // Radius of the Earth in kilometers
 
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);

@@ -1,7 +1,6 @@
 package com.example.DriverApp.Entities;
 
 import jakarta.persistence.*;
-import java.util.List;
 
 @Entity
 public class CarService {
@@ -11,13 +10,10 @@ public class CarService {
     private Long id;
 
     private String serviceName;
- 
+
     private String name;
 
-    @ElementCollection
-    @CollectionTable(name = "vehicle_types", joinColumns = @JoinColumn(name = "car_service_id"))
-    @Column(name = "vehicle_type")
-    private List<String> vehicleType;  
+    private String vehicleType; // Changed from List<String> to String
 
     private String description;
 
@@ -51,11 +47,11 @@ public class CarService {
         this.name = name;
     }
 
-    public List<String> getVehicleType() {
+    public String getVehicleType() {
         return vehicleType;
     }
 
-    public void setVehicleType(List<String> vehicleType) {
+    public void setVehicleType(String vehicleType) {
         this.vehicleType = vehicleType;
     }
 

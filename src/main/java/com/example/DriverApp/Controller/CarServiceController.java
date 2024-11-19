@@ -18,7 +18,7 @@ public class CarServiceController {
     @Autowired
     private CarServiceService carServiceService;
 
-    // Endpoint to add a single Car Service
+    // Endpoint to add or update a single Car Service
     @PostMapping("/add")
     public ResponseEntity<CarService> addCarService(@RequestBody CarService carService) {
         if (carService == null) {
@@ -28,36 +28,23 @@ public class CarServiceController {
         return ResponseEntity.ok(savedCarService);
     }
 
-    // Endpoint to add multiple Car Services
-    @PostMapping("/addAll")
-    public ResponseEntity<List<CarService>> addCarServices(@RequestBody List<CarService> carServices) {
-        if (carServices == null || carServices.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        List<CarService> savedCarServices = carServiceService.saveAllCarServices(carServices);
-        return ResponseEntity.ok(savedCarServices);
-    }
-
-    // Endpoint to update Car Services by serviceName
-    @PutMapping("/update/{serviceName}")
-    public ResponseEntity<List<CarService>> updateCarServices(
+    // Endpoint to update a single Car Service by serviceName and vehicleType
+    @PutMapping("/update/{serviceName}/{vehicleType}")
+    public ResponseEntity<CarService> updateCarService(
             @PathVariable String serviceName,
-            @RequestBody List<CarService> updatedServices) {
-        List<CarService> updatedCarServices = carServiceService.updateCarServices(serviceName, updatedServices);
-        if (updatedCarServices != null) {
-            return ResponseEntity.ok(updatedCarServices);
-        }
-        return ResponseEntity.notFound().build();
+            @PathVariable String vehicleType,
+            @RequestBody CarService updatedService) {
+        CarService updatedCarService = carServiceService.updateCarService(serviceName, vehicleType, updatedService);
+        return ResponseEntity.ok(updatedCarService);
     }
 
-    // Endpoint to get Car Services by serviceName
-    @GetMapping("/get/{serviceName}")
-    public ResponseEntity<List<CarService>> getCarServicesByServiceName(@PathVariable String serviceName) {
-        List<CarService> carServices = carServiceService.getCarServicesByServiceName(serviceName);
-        if (carServices.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(carServices);
+    // Endpoint to get a single Car Service by serviceName and vehicleType
+    @GetMapping("/get/{serviceName}/{vehicleType}")
+    public ResponseEntity<CarService> getCarServiceByServiceNameAndVehicleType(
+            @PathVariable String serviceName,
+            @PathVariable String vehicleType) {
+        CarService carService = carServiceService.getCarServiceByServiceNameAndVehicleType(serviceName, vehicleType);
+        return ResponseEntity.ok(carService);
     }
 
     // Endpoint to get all Car Services
@@ -67,22 +54,23 @@ public class CarServiceController {
         return ResponseEntity.ok(carServices);
     }
 
-     @DeleteMapping("/delete/{id}")
+    // Endpoint to delete a Car Service by ID
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteCarService(@PathVariable Long id) {
         carServiceService.deleteCarService(id);
         return ResponseEntity.noContent().build();
     }
 
-     @GetMapping("/prices")
-    public ResponseEntity<List<CarServiceResponse>> getAllVehicleTypesWithPrices(
+    // Endpoint to get vehicle type with price for a specific service
+    @GetMapping("/price")
+    public ResponseEntity<CarServiceResponse> getVehicleTypeWithPrice(
             @RequestParam String serviceName,
+            @RequestParam String vehicleType,
             @RequestParam Long customerId,
             @RequestParam double dropOffLatitude,
             @RequestParam double dropOffLongitude) {
-
-         List<CarServiceResponse> responses = carServiceService.getAllVehicleTypesWithPrices(
-                serviceName, customerId, dropOffLatitude, dropOffLongitude);
-
-         return ResponseEntity.ok(responses);
+        CarServiceResponse response = carServiceService.getVehicleTypeWithPrice(
+                serviceName, vehicleType, customerId, dropOffLatitude, dropOffLongitude);
+        return ResponseEntity.ok(response);
     }
 }
