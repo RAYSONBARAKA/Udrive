@@ -2,12 +2,15 @@ package com.example.DriverApp.Service;
 
 import io.socket.client.Socket;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import com.example.DriverApp.Entities.*;
 import com.example.DriverApp.Repositories.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
  
 @Service
@@ -63,13 +66,10 @@ private EmailService emailService;
         }
     }
 
- // Get vehicle types with estimated prices based on distance
-public List<CarServiceResponse> getAllVehicleTypesWithPrices(String serviceName, Long customerId, double dropOffLatitude, double dropOffLongitude) {
-    // Fetch car services for the given service name
-    List<CarService> carServices = carServiceRepository.findByServiceName(serviceName);
+ public List<CarServiceResponse> getAllVehicleTypesWithPrices(String serviceName, Long customerId, double dropOffLatitude, double dropOffLongitude) {
+     List<CarService> carServices = carServiceRepository.findByServiceName(serviceName);
 
-    // Fetch the customer's pickup location
-    Customer customer = customerRepository.findById(customerId)
+     Customer customer = customerRepository.findById(customerId)
             .orElseThrow(() -> new RuntimeException("Customer not found"));
 
     double pickupLatitude = customer.getLatitude();
@@ -187,9 +187,6 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
         return rideRequests;
     }
 
-
-
-
     public RideRequest acceptRideRequest(Long driverId, Long rideRequestId) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found"));
@@ -204,21 +201,51 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
         rideRequest.setStatus("Accepted");
         rideRequest.setDriver(driver);
     
-        // Send notification email to the customer
-        String customerEmail = rideRequest.getCustomer().getEmail();
-        String customerName = rideRequest.getCustomer().getFirstName();
-        String driverName = driver.getFullName();
+        // Extract necessary details for price calculation
+        Long customerId = rideRequest.getCustomer().getId();
+        String serviceName = rideRequest.getServiceName(); // Assuming this field exists
+        String vehicleType = driver.getVehicleType(); // Assuming this is a String, not an object
+        double dropOffLatitude = rideRequest.getDropOffLatitude();
+        double dropOffLongitude = rideRequest.getDropOffLongitude();
     
-         emailService.sendRideAcceptedEmail(customerEmail, customerName, driverName);
+        // Calculate price
+        double calculatedPrice = calculatePrice(customerId, serviceName, vehicleType, dropOffLatitude, dropOffLongitude);
     
+        // Save the calculated price in the ride request
+        rideRequest.setCalculatedPrice(calculatedPrice);
+    
+        // Persist the updated ride request
         return rideRequestRepository.save(rideRequest);
     }
     
 
-
-
-
-
+    public Map<String, Object> getRideRequestDetailsById(Long rideRequestId) {
+        // Fetch the ride request by ID from the repository
+        RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
+                .orElseThrow(() -> new RuntimeException("Ride request not found"));
+    
+        // Check if a driver is assigned to the ride request
+        if (rideRequest.getDriver() == null) {
+            throw new RuntimeException("No driver assigned to this ride request yet.");
+        }
+    
+        // Get the driver details from the ride request
+        Driver driver = rideRequest.getDriver();
+        Map<String, Object> driverDetails = new HashMap<>();
+        driverDetails.put("id", driver.getId());
+        driverDetails.put("name", driver.getFullName());
+        driverDetails.put("vehicle", driver.getVehicleMake());  // Assuming vehicleMake is the vehicle information
+    
+        // Fetch the previously calculated price
+        double estimatedPrice = rideRequest.getCalculatedPrice();
+    
+        // Return the details as a map
+        return Map.of(
+                "driver", driverDetails,
+                "estimatedPrice", estimatedPrice
+        );
+    }
+    
 
 
 

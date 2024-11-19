@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.DriverApp.Entities.CarService;
 import com.example.DriverApp.Service.CarServiceService;
+import com.example.DriverApp.DTO.CarServiceResponse;
 
 import java.util.List;
 
@@ -66,23 +67,22 @@ public class CarServiceController {
         return ResponseEntity.ok(carServices);
     }
 
-    // Endpoint to delete a Car Service by ID
-    @DeleteMapping("/delete/{id}")
+     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteCarService(@PathVariable Long id) {
         carServiceService.deleteCarService(id);
         return ResponseEntity.noContent().build();
     }
 
-    // Endpoint to get all vehicle types with estimated prices
-    @GetMapping("/prices")
-    public ResponseEntity<List<CarServiceService.CarServiceResponse>> getAllVehicleTypesWithPrices(
+     @GetMapping("/prices")
+    public ResponseEntity<List<CarServiceResponse>> getAllVehicleTypesWithPrices(
             @RequestParam String serviceName,
             @RequestParam Long customerId,
             @RequestParam double dropOffLatitude,
             @RequestParam double dropOffLongitude) {
 
-        List<CarServiceService.CarServiceResponse> responses = carServiceService.getAllVehicleTypesWithPrices(
+         List<CarServiceResponse> responses = carServiceService.getAllVehicleTypesWithPrices(
                 serviceName, customerId, dropOffLatitude, dropOffLongitude);
-        return ResponseEntity.ok(responses);
+
+         return ResponseEntity.ok(responses);
     }
 }

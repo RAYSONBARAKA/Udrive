@@ -11,7 +11,7 @@ public class CarService {
     private Long id;
 
     private String serviceName;
-
+ 
     private String name;
 
     @ElementCollection

@@ -43,6 +43,23 @@ public class RideRequest {
     private String driverName;
     private double pickupLatitude;
     private double pickupLongitude;
+    private double calculatedPrice;
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public double getCalculatedPrice() {
+        return calculatedPrice;
+    }
+
+    public void setCalculatedPrice(double calculatedPrice) {
+        this.calculatedPrice = calculatedPrice;
+    }
 
     private double dropOffLatitude;
     private double dropOffLongitude;

@@ -7,6 +7,7 @@ import com.example.DriverApp.Entities.CarService;
 import com.example.DriverApp.Entities.Customer;
 import com.example.DriverApp.Repositories.CarServiceRepository;
 import com.example.DriverApp.Repositories.CustomerRepository;
+import com.example.DriverApp.DTO.CarServiceResponse;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,28 +64,31 @@ public class CarServiceService {
         carServiceRepository.deleteById(id);
     }
 
-    // Get all vehicle types with estimated prices
-    public List<CarServiceResponse> getAllVehicleTypesWithPrices(String serviceName, Long customerId, double dropOffLatitude, double dropOffLongitude) {
-        List<CarService> carServices = carServiceRepository.findAllByServiceName(serviceName);
+    public List<CarServiceResponse> getAllVehicleTypesWithPrices(
+        String serviceName, Long customerId, double dropOffLatitude, double dropOffLongitude) {
+    List<CarService> carServices = carServiceRepository.findAllByServiceName(serviceName);
 
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+    Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        double pickupLatitude = customer.getLatitude();
-        double pickupLongitude = customer.getLongitude();
+    double pickupLatitude = customer.getLatitude();
+    double pickupLongitude = customer.getLongitude();
 
-        return carServices.stream()
-                .flatMap(carService -> carService.getVehicleType().stream().map(vehicleType -> {
-                    double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
-                    double price = distance * carService.getRatePerKm();
-                    return new CarServiceResponse(vehicleType, price);
-                }))
-                .collect(Collectors.toList());
-    }
+    return carServices.stream()
+            .map(carService -> {
+                double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
+                double price = distance * carService.getRatePerKm();
+
+                // Return CarServiceResponse with the list of vehicle types
+                return new CarServiceResponse(carService.getVehicleType(), carService.getRatePerKm(), price);
+            })
+            .collect(Collectors.toList());
+}
+
 
     // Haversine formula to calculate distance in kilometers
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int EARTH_RADIUS = 6371;
+        final int EARTH_RADIUS = 6371; // Earth radius in kilometers
 
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
@@ -95,25 +99,6 @@ public class CarServiceService {
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        return EARTH_RADIUS * c;
-    }
-
-    // DTO class for car service response
-    public static class CarServiceResponse {
-        private String vehicleType;
-        private double estimatedPrice;
-
-        public CarServiceResponse(String vehicleType, double estimatedPrice) {
-            this.vehicleType = vehicleType;
-            this.estimatedPrice = estimatedPrice;
-        }
-
-        public String getVehicleType() {
-            return vehicleType;
-        }
-
-        public double getEstimatedPrice() {
-            return estimatedPrice;
-        }
+        return EARTH_RADIUS * c; // Return the distance in kilometers
     }
 }
