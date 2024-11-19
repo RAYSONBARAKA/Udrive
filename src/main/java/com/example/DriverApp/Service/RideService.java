@@ -7,24 +7,25 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import com.example.DriverApp.Entities.*;
 import com.example.DriverApp.Repositories.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
- 
+
+ import java.time.LocalDateTime;
+  
 @Service
 public class RideService {
 
-    private final Socket socket;
+     
+
+    
 
     @Autowired
-    public RideService(Socket socket) {
-        this.socket = socket; // Inject the Socket.IO client
-    }
-
-    @Autowired
-    private NotificationService notificationService;
+    private NotificationRepository notificationRepository;
+   
 
     @Autowired
 private EmailService emailService;
@@ -188,6 +189,8 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
     }
 
 
+
+    
 public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long rideRequestId) {
     Driver driver = driverRepository.findById(driverId)
             .orElseThrow(() -> new RuntimeException("Driver not found"));
@@ -202,20 +205,27 @@ public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long
     rideRequest.setStatus("Accepted");
     rideRequest.setDriver(driver);
 
-    // Send notification email to the customer
+    // Prepare the notification message
     String customerEmail = rideRequest.getCustomer().getEmail();
     String customerName = rideRequest.getCustomer().getFirstName();
     String driverName = driver.getFullName();
+    String notificationMessage = "Your ride request has been accepted by " + driverName + ".";
 
+    // Send notification email to the customer
     emailService.sendRideAcceptedEmail(customerEmail, customerName, driverName);
 
+    // Create and save the notification in the database
+    Notification notification = new Notification(notificationMessage, customerEmail, LocalDateTime.now());
+    notificationRepository.save(notification); // Save the notification in the database
+
+    // Save the updated ride request
     rideRequestRepository.save(rideRequest);
 
     // Prepare custom response
     Map<String, Object> response = new HashMap<>();
     response.put("status", "100 CONTINUE");
-    response.put("data", rideRequest); 
-    response.put("message", "Your ride request has been accepted by " + driverName + ".");
+    response.put("data", rideRequest);
+    response.put("message", notificationMessage);
 
     return ResponseEntity.ok(response);
 }
@@ -223,8 +233,14 @@ public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long
 
 
 
-
-
+public Notification getNotificationById(Long notificationId) {
+    return notificationRepository.findById(notificationId)
+            .orElseThrow(() -> new RuntimeException("Notification not found"));
+}
+ 
+public List<Notification> getNotificationsByRecipientEmail(String email) {
+    return notificationRepository.findByRecipientEmail(email);
+}
 
 
 
@@ -274,5 +290,22 @@ public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long
         // Fetch and return all ride requests with "Pending" status for the driver
         return rideRequestRepository.findByDriverAndStatus(driver, "Pending");
     }
+
+
+    public RideRequest getRideRequestById(Long rideRequestId) {
+        return rideRequestRepository.findById(rideRequestId)
+                .orElseThrow(() -> new RuntimeException("RideRequest not found with ID: " + rideRequestId));
+    }
+
+    public List<Notification> getNotificationsForDriver(Long driverId) {
+        return notificationRepository.findByDriverId(driverId);
+    }
+
+    // Method to get notifications for a specific customer by customerId
+    public List<Notification> getNotificationsForCustomer(Long customerId) {
+        return notificationRepository.findByCustomerId(customerId);
+    }
+
+
     
 }

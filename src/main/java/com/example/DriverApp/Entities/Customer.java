@@ -1,14 +1,16 @@
 package com.example.DriverApp.Entities;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 @CrossOrigin("*")
 @Entity
@@ -19,6 +21,13 @@ public class Customer {
     private Long id; 
      private String token; 
     private String firstName;
+    private String notificationEndpoint;
+    public String getNotificationEndpoint() {
+        return notificationEndpoint;
+    }
+    public void setNotificationEndpoint(String notificationEndpoint) {
+        this.notificationEndpoint = notificationEndpoint;
+    }
     public String getToken() {
         return token;
     }

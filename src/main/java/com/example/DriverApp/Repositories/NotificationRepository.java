@@ -20,6 +20,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     // Find all notifications for a specific driver (unread by default)
     List<Notification> findByDriverId(Long driverId);
+
+    List<Notification> findByRecipientEmail(String recipientEmail);
+ 
+
 }
 
 

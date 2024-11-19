@@ -24,7 +24,6 @@ com\example\DriverApp\DTO\CarServiceResponse.class
 com\example\DriverApp\Entities\Products.class
 com\example\DriverApp\Entities\CustomerLocation.class
 com\example\DriverApp\DTO\DriverInfoDTO.class
-com\example\DriverApp\Service\NotificationService.class
 com\example\DriverApp\Utility\SwaggerConf.class
 com\example\DriverApp\Configuration\CloudinaryConfig.class
 com\example\DriverApp\DriverAppApplication.class
@@ -46,6 +45,7 @@ com\example\DriverApp\DTO\RidesResponse.class
 com\example\DriverApp\Service\ServiceService.class
 com\example\DriverApp\Entities\CarService.class
 com\example\DriverApp\WebSocketHandler\RideRequestWebSocketHandler.class
+com\example\DriverApp\Service\NotificationSender.class
 com\example\DriverApp\SocketIo\SocketIOClient$3.class
 com\example\DriverApp\Configuration\WebSocketConfig.class
 com\example\DriverApp\DTO\PasswordResetWithOtpRequest.class

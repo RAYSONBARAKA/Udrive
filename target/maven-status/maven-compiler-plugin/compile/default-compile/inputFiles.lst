@@ -11,7 +11,6 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\DriverContr
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\DriverLocationController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\LocationWebSocketController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\MoverController.java
-C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\NotificationController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\ProductsController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\QRCodeController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\RideController.java
@@ -79,7 +78,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\DriverLocation
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\DriverService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\EmailService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\MoverService.java
-C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\NotificationService.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\NotificationSender.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\ProductsService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\QRCodeService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\RideService.java

@@ -5,8 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "notifications")
@@ -16,17 +15,43 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    private Customer customer;
-
-    @ManyToOne
-    private Driver driver;
-
+    private Long driverId;
+    private Long customerId;
     private String message;
-    private LocalDateTime timestamp;
-    private String status; // e.g., 'unread', 'read'
+    private String subject;
+    private LocalDateTime date;
+    private String recipientEmail;
+ 
+    private String status; // Ensure this matches your query parameter
 
-    // Getters and Setters
+    public String getRecipientEmail() {
+        return recipientEmail;
+    }
+
+    public void setRecipientEmail(String recipientEmail) {
+        this.recipientEmail = recipientEmail;
+    }
+
+    // Default constructor
+    public Notification() {}
+
+    // Constructor that accepts message, subject, and date
+    public Notification(String message, String subject, LocalDateTime date) {
+        this.message = message;
+        this.subject = subject;
+        this.date = date;
+    }
+
+    // Constructor with driverId and customerId (optional, depending on your use case)
+    public Notification(Long driverId, Long customerId, String message, String subject, LocalDateTime date) {
+        this.driverId = driverId;
+        this.customerId = customerId;
+        this.message = message;
+        this.subject = subject;
+        this.date = date;
+    }
+
+    // Getters and setters for all fields
     public Long getId() {
         return id;
     }
@@ -35,20 +60,20 @@ public class Notification {
         this.id = id;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public Long getDriverId() {
+        return driverId;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setDriverId(Long driverId) {
+        this.driverId = driverId;
     }
 
-    public Driver getDriver() {
-        return driver;
+    public Long getCustomerId() {
+        return customerId;
     }
 
-    public void setDriver(Driver driver) {
-        this.driver = driver;
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
     }
 
     public String getMessage() {
@@ -59,12 +84,20 @@ public class Notification {
         this.message = message;
     }
 
-    public LocalDateTime getTimestamp() {
-        return timestamp;
+    public String getSubject() {
+        return subject;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
     }
 
     public String getStatus() {

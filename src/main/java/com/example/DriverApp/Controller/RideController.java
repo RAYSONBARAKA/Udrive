@@ -1,9 +1,11 @@
 package com.example.DriverApp.Controller;
 
 import com.example.DriverApp.DTO.ApiResponse;
+import com.example.DriverApp.Entities.Notification;
 import com.example.DriverApp.Entities.RideRequest;
 import com.example.DriverApp.Service.RideService;
 import com.example.DriverApp.Service.RideService.CarServiceResponse;
+ import com.example.DriverApp.Repositories.NotificationRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,13 @@ public class RideController {
 
     @Autowired
     private RideService rideService;
+
+  
+ 
+     
+
+    @Autowired
+    private NotificationRepository notificationRepository; // Inject the NotificationRepository
 
     // Endpoint to calculate the price of a ride
     @GetMapping("/calculate-price")
@@ -72,33 +81,44 @@ public class RideController {
     }
 
     // Endpoint for a driver to accept a ride request
-@PostMapping("/accept")
-public ResponseEntity<Map<String, Object>> acceptRideRequest(
-        @RequestParam Long driverId,
-        @RequestParam Long rideRequestId) {
+    @PostMapping("/accept")
+    public ResponseEntity<Map<String, Object>> acceptRideRequest(
+            @RequestParam Long driverId,
+            @RequestParam Long rideRequestId) {
 
-    Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
 
-    try {
-        rideService.acceptRideRequest(driverId, rideRequestId);
-        
-        response.put("status", "100 CONTINUE");
-        response.put("data", null); 
-        response.put("message", "Ride request accepted successfully.");
-        
-        return ResponseEntity.ok(response);
-    } catch (RuntimeException e) {
-        response.put("status", "400 BAD REQUEST");
-        response.put("data", null);
-        response.put("message", e.getMessage());
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        try {
+            // Accept the ride request using RideService
+            rideService.acceptRideRequest(driverId, rideRequestId);
+
+            // Retrieve the RideRequest using RideService (assuming this method exists in RideService)
+            RideRequest rideRequest = rideService.getRideRequestById(rideRequestId);
+
+            // Create and save the notification
+            String customerEmail = rideRequest.getCustomer().getEmail();
+            String customerName = rideRequest.getCustomer().getFirstName();
+            String driverName = rideRequest.getDriver().getFullName();
+
+            Notification notification = new Notification();
+            notification.setRecipientEmail(customerEmail);
+            notification.setMessage("Your ride request has been accepted by " + driverName);
+            notification.setSubject("Ride Accepted");
+            notificationRepository.save(notification);
+
+            response.put("status", "100 CONTINUE");
+            response.put("data", null); 
+            response.put("message", "Ride request accepted successfully.");
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            response.put("status", "400 BAD REQUEST");
+            response.put("data", null);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 
-
     
-}
-
     // Endpoint for a driver to reject a ride request
     @PostMapping("/reject")
     public ResponseEntity<ApiResponse<String>> rejectRideRequest(
@@ -127,6 +147,25 @@ public ResponseEntity<Map<String, Object>> acceptRideRequest(
     }
 
 
+    @GetMapping("/driver/{driverId}")
+    public ResponseEntity<List<Notification>> getNotificationsForDriver(@PathVariable Long driverId) {
+        try {
+            List<Notification> notifications = rideService.getNotificationsForDriver(driverId);
+            return ResponseEntity.ok(notifications);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
 
-        
+    // Endpoint to get notifications for a specific customer by customer ID
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<Notification>> getNotificationsForCustomer(@PathVariable Long customerId) {
+        try {
+            List<Notification> notifications = rideService.getNotificationsForCustomer(customerId);
+            return ResponseEntity.ok(notifications);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
 }
