@@ -1,11 +1,15 @@
 package com.example.DriverApp.Entities;
 
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
- import jakarta.persistence.Table;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "notifications")
@@ -15,37 +19,36 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long driverId;
-    private Long customerId;
+    @ManyToOne
+    @JoinColumn(name = "customer_id")  // Use the correct column name for the relationship
+    private Customer customer;
+
+    private Long driverId;  // Keep this if it is necessary to store the driver ID explicitly
+
     private String message;
     private String subject;
     private LocalDateTime date;
-    private String recipientEmail;
- 
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+    
     private String status; // Ensure this matches your query parameter
 
-    public String getRecipientEmail() {
-        return recipientEmail;
-    }
-
-    public void setRecipientEmail(String recipientEmail) {
-        this.recipientEmail = recipientEmail;
-    }
+    private String recipientEmail;
 
     // Default constructor
     public Notification() {}
 
-    // Constructor that accepts message, subject, and date
+    // Constructor with message, subject, and date
     public Notification(String message, String subject, LocalDateTime date) {
         this.message = message;
         this.subject = subject;
         this.date = date;
     }
 
-    // Constructor with driverId and customerId (optional, depending on your use case)
-    public Notification(Long driverId, Long customerId, String message, String subject, LocalDateTime date) {
+    // Constructor with driverId (customer relationship is handled via @ManyToOne)
+    public Notification(Long driverId, String message, String subject, LocalDateTime date) {
         this.driverId = driverId;
-        this.customerId = customerId;
         this.message = message;
         this.subject = subject;
         this.date = date;
@@ -68,12 +71,12 @@ public class Notification {
         this.driverId = driverId;
     }
 
-    public Long getCustomerId() {
-        return customerId;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
     public String getMessage() {
@@ -106,5 +109,21 @@ public class Notification {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getRecipientEmail() {
+        return recipientEmail;
+    }
+
+    public void setRecipientEmail(String recipientEmail) {
+        this.recipientEmail = recipientEmail;
     }
 }

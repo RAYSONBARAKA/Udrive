@@ -46,6 +46,8 @@ private EmailService emailService;
       @Autowired
     private JavaMailSender mailSender;
 
+
+ 
  
     
     // DTO for car service response (vehicle type and calculated price)
@@ -190,7 +192,7 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
 
 
 
-    
+
 public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long rideRequestId) {
     Driver driver = driverRepository.findById(driverId)
             .orElseThrow(() -> new RuntimeException("Driver not found"));
@@ -237,11 +239,21 @@ public Notification getNotificationById(Long notificationId) {
     return notificationRepository.findById(notificationId)
             .orElseThrow(() -> new RuntimeException("Notification not found"));
 }
- 
-public List<Notification> getNotificationsByRecipientEmail(String email) {
-    return notificationRepository.findByRecipientEmail(email);
-}
 
+public ResponseEntity<Map<String, Object>> getRecentNotification(Long customerId) {
+    // Get the most recent notification for the customer
+    Notification recentNotification = notificationRepository
+            .findTopByCustomerIdOrderByDateDesc(customerId)
+            .orElseThrow(() -> new RuntimeException("No notifications found for customer ID: " + customerId));
+
+    // Prepare the response
+    Map<String, Object> response = new HashMap<>();
+    response.put("status", "200 OK");
+    response.put("message", "Recent notification retrieved successfully");
+    response.put("data", recentNotification);
+
+    return ResponseEntity.ok(response);
+}
 
 
 
@@ -296,15 +308,7 @@ public List<Notification> getNotificationsByRecipientEmail(String email) {
         return rideRequestRepository.findById(rideRequestId)
                 .orElseThrow(() -> new RuntimeException("RideRequest not found with ID: " + rideRequestId));
     }
-
-    public List<Notification> getNotificationsForDriver(Long driverId) {
-        return notificationRepository.findByDriverId(driverId);
-    }
-
-    // Method to get notifications for a specific customer by customerId
-    public List<Notification> getNotificationsForCustomer(Long customerId) {
-        return notificationRepository.findByCustomerId(customerId);
-    }
+ 
 
 
     

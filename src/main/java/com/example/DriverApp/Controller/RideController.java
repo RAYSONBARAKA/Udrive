@@ -147,25 +147,26 @@ public class RideController {
     }
 
 
-    @GetMapping("/driver/{driverId}")
-    public ResponseEntity<List<Notification>> getNotificationsForDriver(@PathVariable Long driverId) {
-        try {
-            List<Notification> notifications = rideService.getNotificationsForDriver(driverId);
-            return ResponseEntity.ok(notifications);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
+     
+    
+   
+@GetMapping("/recent-notification")
+public ResponseEntity<Map<String, Object>> getRecentNotification(@RequestParam Long customerId) {
+    // Retrieve the most recent notification for the customer, ordered by 'date'
+    Notification recentNotification = notificationRepository
+            .findTopByCustomerIdOrderByDateDesc(customerId)
+            .orElseThrow(() -> new RuntimeException("No notifications found for customer ID: " + customerId));
 
-    // Endpoint to get notifications for a specific customer by customer ID
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Notification>> getNotificationsForCustomer(@PathVariable Long customerId) {
-        try {
-            List<Notification> notifications = rideService.getNotificationsForCustomer(customerId);
-            return ResponseEntity.ok(notifications);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
+    // Prepare the response map
+    Map<String, Object> response = new HashMap<>();
+    response.put("status", "200 OK");
+    response.put("message", "Recent notification retrieved successfully");
+    response.put("data", recentNotification.getMessage()); // Return only the message
 
+    // Return the response as a ResponseEntity
+    return ResponseEntity.ok(response);
 }
+ 
+}
+
+
