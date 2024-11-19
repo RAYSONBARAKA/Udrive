@@ -149,32 +149,20 @@ public class RideController {
         }
     }
 
-
-     
-    @GetMapping("/recent-notification{customerid}")
-    public ResponseEntity<Map<String, Object>> getRecentNotification(@RequestParam Long customerId) {
-        // Add a delay of 1 hour (3600000 milliseconds) before retrieving the notification
-        try {
-            Thread.sleep(3600000);  // Delay for 1 hour
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Thread was interrupted", e);
-        }
-
+    @GetMapping("/recent-notification/{customerId}")
+    public ResponseEntity<Map<String, Object>> getRecentNotification(@PathVariable Long customerId) {
         // Retrieve the most recent notification for the customer, ordered by 'date'
         Notification recentNotification = notificationRepository
                 .findTopByCustomerIdOrderByDateDesc(customerId)
                 .orElseThrow(() -> new RuntimeException("No notifications found for customer ID: " + customerId));
-
-        // Prepare the response
+    
+        // Prepare the response map
         Map<String, Object> response = new HashMap<>();
         response.put("status", "200 OK");
         response.put("message", "Recent notification retrieved successfully");
         response.put("data", recentNotification.getMessage()); // Return only the message
-
+    
         // Return the response as a ResponseEntity
         return ResponseEntity.ok(response);
     }
-}
-
-
+}    
