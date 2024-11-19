@@ -1,11 +1,13 @@
 package com.example.DriverApp.Controller;
 
 import com.example.DriverApp.DTO.ApiResponse;
+import com.example.DriverApp.Entities.ArchiveNotification;
 import com.example.DriverApp.Entities.Notification;
 import com.example.DriverApp.Entities.RideRequest;
 import com.example.DriverApp.Service.RideService;
 import com.example.DriverApp.Service.RideService.CarServiceResponse;
- import com.example.DriverApp.Repositories.NotificationRepository;
+import com.example.DriverApp.Repositories.ArchiveNotificationRepository;
+import com.example.DriverApp.Repositories.NotificationRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,7 +26,8 @@ public class RideController {
     @Autowired
     private RideService rideService;
 
-  
+   @Autowired
+    private ArchiveNotificationRepository archiveNotificationRepository;
  
      
 
@@ -148,20 +151,38 @@ public class RideController {
 
 
      
-    
     @GetMapping("/recent-notification/{customerId}")
     public ResponseEntity<Map<String, Object>> getRecentNotification(@PathVariable Long customerId) {
-        // Retrieve the most recent notification for the customer, ordered by 'date'
+        // Retrieve the most recent notification for the customer
         Notification recentNotification = notificationRepository
                 .findTopByCustomerIdOrderByDateDesc(customerId)
                 .orElseThrow(() -> new RuntimeException("No notifications found for customer ID: " + customerId));
-    
+
+        // Move the notification to the archive
+        ArchiveNotification archiveNotification = new ArchiveNotification(
+            recentNotification.getId(),
+            recentNotification.getCustomer(),
+            recentNotification.getDriverId(),
+            recentNotification.getMessage(),
+            recentNotification.getSubject(),
+            recentNotification.getDate(),
+            recentNotification.getCreatedAt(),
+            recentNotification.getStatus(),
+            recentNotification.getRecipientEmail()
+        );
+
+        // Save the archived notification
+        archiveNotificationRepository.save(archiveNotification);
+
+        // Optionally, delete the notification from the active table
+        notificationRepository.delete(recentNotification);
+
         // Prepare the response map
         Map<String, Object> response = new HashMap<>();
         response.put("status", "200 OK");
-        response.put("message", "Recent notification retrieved successfully");
+        response.put("message", "Recent notification archived and retrieved successfully");
         response.put("data", recentNotification.getMessage()); // Return only the message
-    
+
         // Return the response as a ResponseEntity
         return ResponseEntity.ok(response);
     }
