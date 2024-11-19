@@ -149,24 +149,22 @@ public class RideController {
 
      
     
-   
-@GetMapping("/recent-notification")
-public ResponseEntity<Map<String, Object>> getRecentNotification(@RequestParam Long customerId) {
-    // Retrieve the most recent notification for the customer, ordered by 'date'
-    Notification recentNotification = notificationRepository
-            .findTopByCustomerIdOrderByDateDesc(customerId)
-            .orElseThrow(() -> new RuntimeException("No notifications found for customer ID: " + customerId));
-
-    // Prepare the response map
-    Map<String, Object> response = new HashMap<>();
-    response.put("status", "200 OK");
-    response.put("message", "Recent notification retrieved successfully");
-    response.put("data", recentNotification.getMessage()); // Return only the message
-
-    // Return the response as a ResponseEntity
-    return ResponseEntity.ok(response);
-}
- 
+    @GetMapping("/recent-notification/{customerId}")
+    public ResponseEntity<Map<String, Object>> getRecentNotification(@PathVariable Long customerId) {
+        // Retrieve the most recent notification for the customer, ordered by 'date'
+        Notification recentNotification = notificationRepository
+                .findTopByCustomerIdOrderByDateDesc(customerId)
+                .orElseThrow(() -> new RuntimeException("No notifications found for customer ID: " + customerId));
+    
+        // Prepare the response map
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "200 OK");
+        response.put("message", "Recent notification retrieved successfully");
+        response.put("data", recentNotification.getMessage()); // Return only the message
+    
+        // Return the response as a ResponseEntity
+        return ResponseEntity.ok(response);
+    }
 }
 
 
