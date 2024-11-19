@@ -151,36 +151,25 @@ public class RideController {
 
 
      
-    @GetMapping("/recent-notification/{customerId}")
-    public ResponseEntity<Map<String, Object>> getRecentNotification(@PathVariable Long customerId) {
-        // Retrieve the most recent notification for the customer
+    @GetMapping("/recent-notification{customerid}")
+    public ResponseEntity<Map<String, Object>> getRecentNotification(@RequestParam Long customerId) {
+        // Add a delay of 1 hour (3600000 milliseconds) before retrieving the notification
+        try {
+            Thread.sleep(3600000);  // Delay for 1 hour
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread was interrupted", e);
+        }
+
+        // Retrieve the most recent notification for the customer, ordered by 'date'
         Notification recentNotification = notificationRepository
                 .findTopByCustomerIdOrderByDateDesc(customerId)
                 .orElseThrow(() -> new RuntimeException("No notifications found for customer ID: " + customerId));
 
-        // Move the notification to the archive
-        ArchiveNotification archiveNotification = new ArchiveNotification(
-            recentNotification.getId(),
-            recentNotification.getCustomer(),
-            recentNotification.getDriverId(),
-            recentNotification.getMessage(),
-            recentNotification.getSubject(),
-            recentNotification.getDate(),
-            recentNotification.getCreatedAt(),
-            recentNotification.getStatus(),
-            recentNotification.getRecipientEmail()
-        );
-
-        // Save the archived notification
-        archiveNotificationRepository.save(archiveNotification);
-
-        // Optionally, delete the notification from the active table
-        notificationRepository.delete(recentNotification);
-
-        // Prepare the response map
+        // Prepare the response
         Map<String, Object> response = new HashMap<>();
         response.put("status", "200 OK");
-        response.put("message", "Recent notification archived and retrieved successfully");
+        response.put("message", "Recent notification retrieved successfully");
         response.put("data", recentNotification.getMessage()); // Return only the message
 
         // Return the response as a ResponseEntity

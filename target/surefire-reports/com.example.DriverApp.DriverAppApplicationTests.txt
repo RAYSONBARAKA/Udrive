@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.example.DriverApp.DriverAppApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 26.71 s -- in com.example.DriverApp.DriverAppApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 24.59 s -- in com.example.DriverApp.DriverAppApplicationTests
