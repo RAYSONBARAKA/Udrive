@@ -187,65 +187,44 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
         return rideRequests;
     }
 
-    public RideRequest acceptRideRequest(Long driverId, Long rideRequestId) {
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Driver not found"));
-    
-        RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
-                .orElseThrow(() -> new RuntimeException("Ride request not found"));
-    
-        if (!"Pending".equals(rideRequest.getStatus())) {
-            throw new RuntimeException("This ride request cannot be accepted as it is no longer pending.");
-        }
-    
-        rideRequest.setStatus("Accepted");
-        rideRequest.setDriver(driver);
-    
-        // Extract necessary details for price calculation
-        Long customerId = rideRequest.getCustomer().getId();
-        String serviceName = rideRequest.getServiceName(); // Assuming this field exists
-        String vehicleType = driver.getVehicleType(); // Assuming this is a String, not an object
-        double dropOffLatitude = rideRequest.getDropOffLatitude();
-        double dropOffLongitude = rideRequest.getDropOffLongitude();
-    
-        // Calculate price
-        double calculatedPrice = calculatePrice(customerId, serviceName, vehicleType, dropOffLatitude, dropOffLongitude);
-    
-        // Save the calculated price in the ride request
-        rideRequest.setCalculatedPrice(calculatedPrice);
-    
-        // Persist the updated ride request
-        return rideRequestRepository.save(rideRequest);
-    }
-    
 
-    public Map<String, Object> getRideRequestDetailsById(Long rideRequestId) {
-        // Fetch the ride request by ID from the repository
-        RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
-                .orElseThrow(() -> new RuntimeException("Ride request not found"));
-    
-        // Check if a driver is assigned to the ride request
-        if (rideRequest.getDriver() == null) {
-            throw new RuntimeException("No driver assigned to this ride request yet.");
-        }
-    
-        // Get the driver details from the ride request
-        Driver driver = rideRequest.getDriver();
-        Map<String, Object> driverDetails = new HashMap<>();
-        driverDetails.put("id", driver.getId());
-        driverDetails.put("name", driver.getFullName());
-        driverDetails.put("vehicle", driver.getVehicleMake());  // Assuming vehicleMake is the vehicle information
-    
-        // Fetch the previously calculated price
-        double estimatedPrice = rideRequest.getCalculatedPrice();
-    
-        // Return the details as a map
-        return Map.of(
-                "driver", driverDetails,
-                "estimatedPrice", estimatedPrice
-        );
+public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long rideRequestId) {
+    Driver driver = driverRepository.findById(driverId)
+            .orElseThrow(() -> new RuntimeException("Driver not found"));
+
+    RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
+            .orElseThrow(() -> new RuntimeException("Ride request not found"));
+
+    if (!"Pending".equals(rideRequest.getStatus())) {
+        throw new RuntimeException("This ride request cannot be accepted as it is no longer pending.");
     }
-    
+
+    rideRequest.setStatus("Accepted");
+    rideRequest.setDriver(driver);
+
+    // Send notification email to the customer
+    String customerEmail = rideRequest.getCustomer().getEmail();
+    String customerName = rideRequest.getCustomer().getFirstName();
+    String driverName = driver.getFullName();
+
+    emailService.sendRideAcceptedEmail(customerEmail, customerName, driverName);
+
+    rideRequestRepository.save(rideRequest);
+
+    // Prepare custom response
+    Map<String, Object> response = new HashMap<>();
+    response.put("status", "100 CONTINUE");
+    response.put("data", rideRequest); 
+    response.put("message", "Your ride request has been accepted by " + driverName + ".");
+
+    return ResponseEntity.ok(response);
+}
+
+
+
+
+
+
 
 
 

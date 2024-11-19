@@ -1,10 +1,10 @@
 package com.example.DriverApp.Controller;
 
 import com.example.DriverApp.DTO.ApiResponse;
-import com.example.DriverApp.Entities.Driver;
 import com.example.DriverApp.Entities.RideRequest;
 import com.example.DriverApp.Service.RideService;
 import com.example.DriverApp.Service.RideService.CarServiceResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,46 +72,32 @@ public class RideController {
     }
 
     // Endpoint for a driver to accept a ride request
-    @PostMapping("/accept")
-    public ResponseEntity<Map<String, Object>> acceptRideRequest(
-            @RequestParam Long driverId,
-            @RequestParam Long rideRequestId) {
+@PostMapping("/accept")
+public ResponseEntity<Map<String, Object>> acceptRideRequest(
+        @RequestParam Long driverId,
+        @RequestParam Long rideRequestId) {
 
-        Map<String, Object> response = new HashMap<>();
+    Map<String, Object> response = new HashMap<>();
 
-        try {
-            rideService.acceptRideRequest(driverId, rideRequestId);
-
-            response.put("status", "100 CONTINUE");
-            response.put("data", null); 
-            response.put("message", "Ride request accepted successfully.");
-            
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            response.put("status", "400 BAD REQUEST");
-            response.put("data", null);
-            response.put("message", e.getMessage());
-            
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
+    try {
+        rideService.acceptRideRequest(driverId, rideRequestId);
+        
+        response.put("status", "100 CONTINUE");
+        response.put("data", null); 
+        response.put("message", "Ride request accepted successfully.");
+        
+        return ResponseEntity.ok(response);
+    } catch (RuntimeException e) {
+        response.put("status", "400 BAD REQUEST");
+        response.put("data", null);
+        response.put("message", e.getMessage());
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-     @GetMapping("/details/{rideRequestId}")
-    public ResponseEntity<Map<String, Object>> getRideDetailsById(@PathVariable Long rideRequestId) {
-        try {
-            // Call the service method to get ride details by ID
-            Map<String, Object> rideDetails = rideService.getRideRequestDetailsById(rideRequestId);
 
-            return ResponseEntity.ok(rideDetails);
-        } catch (RuntimeException e) {
-            // Return error response in case of exception
-            Map<String, Object> errorResponse = Map.of(
-                    "status", "400 BAD REQUEST",
-                    "message", e.getMessage()
-            );
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        }
-    }
+    
+}
 
     // Endpoint for a driver to reject a ride request
     @PostMapping("/reject")
@@ -139,4 +125,8 @@ public class RideController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error ending trip: " + e.getMessage());
         }
     }
+
+
+
+        
 }
