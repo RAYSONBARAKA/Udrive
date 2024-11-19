@@ -234,17 +234,18 @@ public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long
 
 
 
-
-public Notification getNotificationById(Long notificationId) {
-    return notificationRepository.findById(notificationId)
-            .orElseThrow(() -> new RuntimeException("Notification not found"));
-}
-
 public ResponseEntity<Map<String, Object>> getRecentNotification(Long customerId) {
     // Get the most recent notification for the customer
     Notification recentNotification = notificationRepository
             .findTopByCustomerIdOrderByDateDesc(customerId)
             .orElseThrow(() -> new RuntimeException("No notifications found for customer ID: " + customerId));
+
+     try {
+        Thread.sleep(3600000);  
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Thread was interrupted", e);
+    }
 
     // Prepare the response
     Map<String, Object> response = new HashMap<>();
