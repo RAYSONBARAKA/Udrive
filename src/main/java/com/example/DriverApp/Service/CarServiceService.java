@@ -25,15 +25,15 @@ public class CarServiceService {
         return carServiceRepository.save(carService);
     }
 
-    // Get a single Car Service by serviceName and vehicleType
-    public CarService getCarServiceByServiceNameAndVehicleType(String serviceName, String vehicleType) {
-        return carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
+    // Get a single Car Service by serviceName
+    public CarService getCarServiceByServiceName(String serviceName) {
+        return carServiceRepository.findByServiceName(serviceName)
                 .orElseThrow(() -> new RuntimeException("Car Service not found"));
     }
 
-    // Update a single Car Service by serviceName and vehicleType
-    public CarService updateCarService(String serviceName, String vehicleType, CarService updatedService) {
-        CarService existingService = carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
+    // Update a single Car Service by serviceName
+    public CarService updateCarService(String serviceName, CarService updatedService) {
+        CarService existingService = carServiceRepository.findByServiceName(serviceName)
                 .orElseThrow(() -> new RuntimeException("Car Service not found"));
 
         existingService.setDescription(updatedService.getDescription());
@@ -56,20 +56,29 @@ public class CarServiceService {
     }
 
     // Get vehicle type with price for a specific service
-    public CarServiceResponse getVehicleTypeWithPrice(String serviceName, String vehicleType,
-                                                      Long customerId, double dropOffLatitude, double dropOffLongitude) {
-        CarService carService = carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
+    public CarServiceResponse getVehicleTypeWithPrice(String serviceName,
+                                                      Long customerId,
+                                                      double dropOffLatitude,
+                                                      double dropOffLongitude) {
+        // Find car service by service name only
+        CarService carService = carServiceRepository.findByServiceName(serviceName)
                 .orElseThrow(() -> new RuntimeException("Car Service not found"));
 
+        // Find customer by ID
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
+        // Get pickup coordinates from customer details
         double pickupLatitude = customer.getLatitude();
         double pickupLongitude = customer.getLongitude();
 
+        // Calculate the distance between pickup and drop-off points
         double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
+
+        // Calculate the price based on the rate per km
         double price = distance * carService.getRatePerKm();
 
+        // Return response
         return new CarServiceResponse(carService.getVehicleType(), carService.getRatePerKm(), price);
     }
 

@@ -28,22 +28,20 @@ public class CarServiceController {
         return ResponseEntity.ok(savedCarService);
     }
 
-    // Endpoint to update a single Car Service by serviceName and vehicleType
-    @PutMapping("/update/{serviceName}/{vehicleType}")
+    // Endpoint to update a single Car Service by serviceName
+    @PutMapping("/update/{serviceName}")
     public ResponseEntity<CarService> updateCarService(
             @PathVariable String serviceName,
-            @PathVariable String vehicleType,
             @RequestBody CarService updatedService) {
-        CarService updatedCarService = carServiceService.updateCarService(serviceName, vehicleType, updatedService);
+        CarService updatedCarService = carServiceService.updateCarService(serviceName, updatedService);
         return ResponseEntity.ok(updatedCarService);
     }
 
-    // Endpoint to get a single Car Service by serviceName and vehicleType
-    @GetMapping("/get/{serviceName}/{vehicleType}")
-    public ResponseEntity<CarService> getCarServiceByServiceNameAndVehicleType(
-            @PathVariable String serviceName,
-            @PathVariable String vehicleType) {
-        CarService carService = carServiceService.getCarServiceByServiceNameAndVehicleType(serviceName, vehicleType);
+    // Endpoint to get a single Car Service by serviceName
+    @GetMapping("/get/{serviceName}")
+    public ResponseEntity<CarService> getCarServiceByServiceName(
+            @PathVariable String serviceName) {
+        CarService carService = carServiceService.getCarServiceByServiceName(serviceName);
         return ResponseEntity.ok(carService);
     }
 
@@ -65,12 +63,11 @@ public class CarServiceController {
     @GetMapping("/price")
     public ResponseEntity<CarServiceResponse> getVehicleTypeWithPrice(
             @RequestParam String serviceName,
-            @RequestParam String vehicleType,
             @RequestParam Long customerId,
             @RequestParam double dropOffLatitude,
             @RequestParam double dropOffLongitude) {
         CarServiceResponse response = carServiceService.getVehicleTypeWithPrice(
-                serviceName, vehicleType, customerId, dropOffLatitude, dropOffLongitude);
+                serviceName, customerId, dropOffLatitude, dropOffLongitude);
         return ResponseEntity.ok(response);
     }
 }
