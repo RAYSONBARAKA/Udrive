@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import java.time.LocalDateTime;
@@ -67,7 +66,7 @@ public class RideService {
         double dropOffLongitude) {
 
     // Retrieve car services based on serviceName
-    Optional<CarService> carServices = carServiceRepository.findByServiceName(serviceName);
+    List<CarService> carServices = carServiceRepository.findByServiceName(serviceName);
 
     // Retrieve the customer based on the customerId
     Customer customer = customerRepository.findById(customerId)

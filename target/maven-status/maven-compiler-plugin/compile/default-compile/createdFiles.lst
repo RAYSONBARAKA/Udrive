@@ -1,3 +1,4 @@
+com\example\DriverApp\Service\CarServiceService$CarServiceResponse.class
 com\example\DriverApp\DTO\CustomerInfoDTO.class
 com\example\DriverApp\SocketIo\SocketIOClient$1.class
 com\example\DriverApp\DTO\ChangePasswordRequest.class
