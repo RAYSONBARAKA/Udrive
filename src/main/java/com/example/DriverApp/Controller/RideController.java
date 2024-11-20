@@ -2,11 +2,14 @@ package com.example.DriverApp.Controller;
 
 import com.example.DriverApp.DTO.ApiResponse;
 import com.example.DriverApp.Entities.ArchiveNotification;
+import com.example.DriverApp.Entities.Driver;
+import com.example.DriverApp.Entities.DriverDetails;
 import com.example.DriverApp.Entities.Notification;
 import com.example.DriverApp.Entities.RideRequest;
 import com.example.DriverApp.Service.RideService;
 import com.example.DriverApp.Service.RideService.CarServiceResponse;
 import com.example.DriverApp.Repositories.ArchiveNotificationRepository;
+import com.example.DriverApp.Repositories.DriverDetailsRepository;
 import com.example.DriverApp.Repositories.NotificationRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,9 @@ public class RideController {
 
     @Autowired
     private RideService rideService;
+
+    @Autowired
+    private DriverDetailsRepository driverDetailsRepository;
 
    @Autowired
     private ArchiveNotificationRepository archiveNotificationRepository;
@@ -84,42 +90,48 @@ public class RideController {
     }
 
     // Endpoint for a driver to accept a ride request
-    @PostMapping("/accept")
-    public ResponseEntity<Map<String, Object>> acceptRideRequest(
-            @RequestParam Long driverId,
-            @RequestParam Long rideRequestId) {
+   @PostMapping("/accept")
+public ResponseEntity<Map<String, Object>> acceptRideRequest(
+        @RequestParam Long driverId,
+        @RequestParam Long rideRequestId) {
 
-        Map<String, Object> response = new HashMap<>();
+    Map<String, Object> response = new HashMap<>();
 
-        try {
-            // Accept the ride request using RideService
-            rideService.acceptRideRequest(driverId, rideRequestId);
+    try {
+        // Accept the ride request using the service method
+        rideService.acceptRideRequest(driverId, rideRequestId);
 
-            // Retrieve the RideRequest using RideService (assuming this method exists in RideService)
-            RideRequest rideRequest = rideService.getRideRequestById(rideRequestId);
+        // Retrieve the RideRequest using RideService
+        RideRequest rideRequest = rideService.getRideRequestById(rideRequestId);
 
-            // Create and save the notification
-            String customerEmail = rideRequest.getCustomer().getEmail();
-            String customerName = rideRequest.getCustomer().getFirstName();
-            String driverName = rideRequest.getDriver().getFullName();
+        // Create and save driver details in DriverDetails table
+        Driver driver = rideRequest.getDriver();  // Assuming rideRequest has a Driver object linked
+        DriverDetails driverDetails = new DriverDetails();
+        driverDetails.setDriverId(driver.getId());
+        driverDetails.setDriverName(driver.getFullName());
+        driverDetails.setDriverPhone(driver.getPhoneNumber());  // Assuming driver has a phone number
+        driverDetails.setCustomerId(rideRequest.getCustomer().getId());
+        driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());  // Assuming driver's vehicle registration number is available
+        driverDetails.setVehicleMake(driver.getVehicleMake());  // Assuming driver's vehicle make is available
+        driverDetails.setFullName(driver.getFullName());
 
-            Notification notification = new Notification();
-            notification.setRecipientEmail(customerEmail);
-            notification.setMessage("Your ride request has been accepted by " + driverName);
-            notification.setSubject("Ride Accepted");
-            notificationRepository.save(notification);
+        // Save driver details to the database
+        driverDetailsRepository.save(driverDetails);
 
-            response.put("status", "100 CONTINUE");
-            response.put("data", null); 
-            response.put("message", "Ride request accepted successfully.");
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            response.put("status", "400 BAD REQUEST");
-            response.put("data", null);
-            response.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
+        // Prepare response map
+        response.put("status", "100 CONTINUE");
+        response.put("data", null);  // No specific data to return, as the ride is accepted
+        response.put("message", "Ride request accepted and driver details saved successfully.");
+
+        return ResponseEntity.ok(response);
+    } catch (RuntimeException e) {
+        response.put("status", "400 BAD REQUEST");
+        response.put("data", null);
+        response.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+}
+
 
     
     // Endpoint for a driver to reject a ride request

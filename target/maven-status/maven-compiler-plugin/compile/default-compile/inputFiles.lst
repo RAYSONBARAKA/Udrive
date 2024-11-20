@@ -45,6 +45,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\CarService.ja
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\Customer.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\CustomerLocation.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\Driver.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\DriverDetails.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\DriverLocationEntity.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\Mover.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\Notification.java
@@ -60,6 +61,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\ArchiveNo
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\CarServiceRepository.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\CustomerLocationRepository.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\CustomerRepository.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\DriverDetailsRepository.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\DriverLocationRepository.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\DriverRepository.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Repositories\MoverRepository.java

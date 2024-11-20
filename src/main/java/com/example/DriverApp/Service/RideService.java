@@ -40,6 +40,9 @@ public class RideService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Autowired
+    private DriverDetailsRepository driverDetailsRepository;
+
     // DTO for car service response (vehicle type and calculated price)
     public static class CarServiceResponse {
         private String vehicleType;
@@ -158,45 +161,52 @@ public class RideService {
         return rideRequests;
     }
 
-    // Accept a ride request
     public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long rideRequestId) {
+        // Fetch the driver from the repository
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found"));
-
+    
+        // Fetch the ride request from the repository
         RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
                 .orElseThrow(() -> new RuntimeException("Ride request not found"));
-
+    
+        // Ensure the ride request is in "Pending" status before accepting
         if (!"Pending".equals(rideRequest.getStatus())) {
             throw new RuntimeException("This ride request cannot be accepted as it is no longer pending.");
         }
-
+    
+        // Change the status of the ride request to "Accepted" and assign the driver
         rideRequest.setStatus("Accepted");
         rideRequest.setDriver(driver);
-
-        // Prepare the notification message
-        String customerEmail = rideRequest.getCustomer().getEmail();
-        String customerName = rideRequest.getCustomer().getFirstName();
-        String driverName = driver.getFullName();
-        String notificationMessage = "Your ride request has been accepted by " + driverName + ".";
-
-        // Send notification email to the customer
-        emailService.sendRideAcceptedEmail(customerEmail, customerName, driverName);
-
-        // Create and save the notification in the database
-        Notification notification = new Notification(notificationMessage, customerEmail, LocalDateTime.now());
-        notificationRepository.save(notification);
-
-        // Save the updated ride request
+    
+        // Save the updated ride request in the repository
         rideRequestRepository.save(rideRequest);
-
-        // Prepare custom response
+    
+        // Create and save the driver details
+        DriverDetails driverDetails = new DriverDetails();
+        driverDetails.setDriverId(driver.getId());
+        driverDetails.setDriverName(driver.getFullName());
+        driverDetails.setDriverPhone(driver.getPhoneNumber());  // Assuming the driver's phone number is in the Driver entity
+        driverDetails.setCustomerId(rideRequest.getCustomer().getId());
+        driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());  // Assuming you have this in the Driver entity
+        driverDetails.setVehicleMake(driver.getVehicleMake());  // Assuming you have this in the Driver entity
+        driverDetails.setFullName(driver.getFullName());
+    
+        // Set the ride request if needed (optional)
+        driverDetails.setRideRequest(rideRequest);
+    
+        // Save the driver details to the database
+        driverDetailsRepository.save(driverDetails);
+    
+        // Prepare the response map
         Map<String, Object> response = new HashMap<>();
         response.put("status", "100 CONTINUE");
         response.put("data", rideRequest);
-        response.put("message", notificationMessage);
-
+        response.put("message", "Ride request accepted and driver details stored.");
+    
         return ResponseEntity.ok(response);
     }
+    
 
     // Get notification by ID
     public Notification getNotificationById(Long notificationId) {
@@ -256,7 +266,7 @@ public class RideService {
         rideRequest.setStatus("COMPLETED");
         rideRequestRepository.save(rideRequest);
     }
-
+ 
     // Get pending ride requests for a driver
     public List<RideRequest> getPendingRideRequestsForDriver(Long driverId) {
         Driver driver = driverRepository.findById(driverId)

@@ -73,6 +73,7 @@ public class Driver {
    
     private String vehicleRegistrationNumber;
     private String vehicleMake;
+    
     private String insuranceDetailsUrl;
    
     public double getLatitude() {

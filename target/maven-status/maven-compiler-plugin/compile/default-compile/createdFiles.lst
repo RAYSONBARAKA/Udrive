@@ -42,6 +42,7 @@ com\example\DriverApp\Entities\PrimaryTable.class
 com\example\DriverApp\Utility\Mapper.class
 com\example\DriverApp\Controller\AdminController.class
 com\example\DriverApp\DTO\CarTypeWithPriceDTO.class
+com\example\DriverApp\Repositories\DriverDetailsRepository.class
 com\example\DriverApp\Configuration\MailConfig.class
 com\example\DriverApp\Entities\TypeDef.class
 com\example\DriverApp\Repositories\AdminRepository.class
@@ -82,6 +83,7 @@ com\example\DriverApp\Service\TokenStorage.class
 com\example\DriverApp\Controller\UberIntegrationController.class
 com\example\DriverApp\SocketIo\SocketIOClient$2.class
 com\example\DriverApp\SecurityConfig\CustomAuthorizationFilter.class
+com\example\DriverApp\Entities\DriverDetails.class
 com\example\DriverApp\Service\CloudinaryService.class
 com\example\DriverApp\Configuration\JacksonConfig.class
 com\example\DriverApp\DTO\CustomerDTO.class
