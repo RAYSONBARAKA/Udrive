@@ -98,14 +98,11 @@ public ResponseEntity<Map<String, Object>> acceptRideRequest(
     Map<String, Object> response = new HashMap<>();
 
     try {
-        // Accept the ride request using the service method
-        rideService.acceptRideRequest(driverId, rideRequestId);
+         rideService.acceptRideRequest(driverId, rideRequestId);
 
-        // Retrieve the RideRequest using RideService
-        RideRequest rideRequest = rideService.getRideRequestById(rideRequestId);
+         RideRequest rideRequest = rideService.getRideRequestById(rideRequestId);
 
-        // Create and save driver details in DriverDetails table
-        Driver driver = rideRequest.getDriver();  // Assuming rideRequest has a Driver object linked
+         Driver driver = rideRequest.getDriver();   
         DriverDetails driverDetails = new DriverDetails();
         driverDetails.setDriverId(driver.getId());
         driverDetails.setDriverName(driver.getFullName());
@@ -114,8 +111,8 @@ public ResponseEntity<Map<String, Object>> acceptRideRequest(
         driverDetails.setProfilePictureUrl(driver.getProfilePictureUrl());
         driverDetails.setPhoneNumber(driver.getPhoneNumber());
         driverDetails.setCustomerId(rideRequest.getCustomer().getId());
-        driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());  // Assuming driver's vehicle registration number is available
-        driverDetails.setVehicleMake(driver.getVehicleMake());  // Assuming driver's vehicle make is available
+        driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());  
+        driverDetails.setVehicleMake(driver.getVehicleMake());   
         driverDetails.setFullName(driver.getFullName());
 
         // Save driver details to the database

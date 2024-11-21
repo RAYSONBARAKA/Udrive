@@ -1,9 +1,11 @@
 package com.example.DriverApp.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.DriverApp.DTO.UpdateResponse;
 import com.example.DriverApp.Entities.CarService;
 import com.example.DriverApp.Service.CarServiceService;
 
@@ -38,17 +40,21 @@ public class CarServiceController {
     }
 
     // Endpoint to update Car Services by serviceName
-    @PutMapping("/update/{serviceName}")
-    public ResponseEntity<List<CarService>> updateCarServices(
-            @PathVariable String serviceName,
-            @RequestBody List<CarService> updatedServices) {
-        List<CarService> updatedCarServices = carServiceService.updateCarServices(serviceName, updatedServices);
-        if (updatedCarServices != null) {
-            return ResponseEntity.ok(updatedCarServices);
-        }
-        return ResponseEntity.notFound().build();
+   @PutMapping("/update/{serviceName}")
+public ResponseEntity<UpdateResponse> updateCarServices(
+        @PathVariable String serviceName,
+        @RequestBody List<CarService> updatedServices) {
+    UpdateResponse response = carServiceService.updateCarServices(serviceName, updatedServices);
+    
+    if (response.getUpdatedServices() != null && !response.getUpdatedServices().isEmpty()) {
+        return ResponseEntity.ok(response);  // Return updated services and success message
     }
+    
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);  // Return not found with message
+}
 
+    
+    
     // Endpoint to get Car Services by serviceName
     @GetMapping("/get/{serviceName}")
     public ResponseEntity<List<CarService>> getCarServicesByServiceName(@PathVariable String serviceName) {

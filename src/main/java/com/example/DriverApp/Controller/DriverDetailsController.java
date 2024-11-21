@@ -21,17 +21,14 @@ public class DriverDetailsController {
 
     private final RideService rideService;
 
-    // Constructor-based dependency injection
-    public DriverDetailsController(RideService rideService) {
+     public DriverDetailsController(RideService rideService) {
         this.rideService = rideService;
     }
 
-    /**
-     * Endpoint to fetch recent driver details by customer ID
-     *
-     * @param customerId The ID of the customer
-     * @return ResponseEntity containing recent driver details
-     */
+     
+      //param customerId The ID of the customer
+      //return ResponseEntity containing recent driver details
+     
     @GetMapping("/recent/{customerId}")
     public ResponseEntity<Map<String, Object>> getRecentDriverDetails(@PathVariable Long customerId) {
         LOGGER.info("Received request to fetch recent driver details for customer ID {}", customerId);

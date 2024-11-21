@@ -243,6 +243,10 @@ import java.util.stream.Collectors;
         return ResponseEntity.ok(response);
     }
 
+
+    //getting the drive details frolm the database 
+    
+
     public ResponseEntity<Map<String, Object>> getRecentDriverDetailsByCustomerId(Long customerId) {
         LOGGER.info("Fetching the most recent driver detail by ID for customer ID {}", customerId);
     

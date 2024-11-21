@@ -3,6 +3,7 @@ package com.example.DriverApp.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.DriverApp.DTO.UpdateResponse;
 import com.example.DriverApp.Entities.CarService;
 import com.example.DriverApp.Entities.Customer;
 import com.example.DriverApp.Repositories.CarServiceRepository;
@@ -35,23 +36,40 @@ public class CarServiceService {
         return carServiceRepository.findAllByServiceName(serviceName);
     }
 
-    // Update Car Services by serviceName
-    public List<CarService> updateCarServices(String serviceName, List<CarService> updatedServices) {
-        List<CarService> existingServices = carServiceRepository.findAllByServiceName(serviceName);
-        if (!existingServices.isEmpty()) {
-            for (int i = 0; i < existingServices.size() && i < updatedServices.size(); i++) {
-                CarService existingService = existingServices.get(i);
-                CarService updatedService = updatedServices.get(i);
-
-                existingService.setDescription(updatedService.getDescription());
-                existingService.setVehicleType(updatedService.getVehicleType());
-                existingService.setRatePerKm(updatedService.getRatePerKm());
-                carServiceRepository.save(existingService);
-            }
-            return carServiceRepository.findAllByServiceName(serviceName);
-        }
-        return null;
+   public UpdateResponse updateCarServices(String serviceName, List<CarService> updatedServices) {
+    // Retrieve existing services by serviceName
+    List<CarService> existingServices = carServiceRepository.findAllByServiceName(serviceName);
+    
+    // Ensure there are existing services to update
+    if (existingServices.isEmpty()) {
+        return new UpdateResponse(null, "No services found with the specified serviceName.");
     }
+
+    // Check if updatedServices is not null or empty
+    if (updatedServices == null || updatedServices.isEmpty()) {
+        return new UpdateResponse(existingServices, "No updates provided.");
+    }
+
+    // Update existing services with the provided updated services
+    for (int i = 0; i < existingServices.size(); i++) {
+        if (i < updatedServices.size()) { // Check to avoid IndexOutOfBoundsException
+            CarService existingService = existingServices.get(i);
+            CarService updatedService = updatedServices.get(i);
+
+            // Update fields
+            existingService.setDescription(updatedService.getDescription());
+            existingService.setVehicleType(updatedService.getVehicleType());
+            existingService.setRatePerKm(updatedService.getRatePerKm());
+
+            // Save the updated service
+            carServiceRepository.save(existingService);
+        }
+    }
+
+    // Return the updated services along with a success message
+    return new UpdateResponse(existingServices, "Services updated successfully.");
+}
+
 
     // Get all Car Services
     public List<CarService> getAllCarServices() {

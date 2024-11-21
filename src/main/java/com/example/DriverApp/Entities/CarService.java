@@ -13,7 +13,9 @@ public class CarService {
 
     private String name;
 
-    private String vehicleType; // Changed from List<String> to String
+
+
+    private String vehicleType;  
 
     private String description;
 
@@ -21,6 +23,9 @@ public class CarService {
     private double ratePerKm = 0;
 
     private Double distance;
+
+    public CarService() {}
+
 
     // Getters and Setters
     public Long getId() {

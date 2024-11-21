@@ -41,6 +41,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideRequestDTO.jav
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideRequestMessage.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideRequestWithCustomerDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RidesResponse.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\UpdateResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\UploadResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\Admin.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Entities\ArchiveNotification.java
