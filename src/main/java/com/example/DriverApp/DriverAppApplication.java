@@ -16,6 +16,10 @@ import org.springframework.web.client.RestTemplate;
 import com.cloudinary.Cloudinary;
 import com.example.DriverApp.Utility.JwtUtil;
 
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+
 @SpringBootApplication
 @EnableScheduling 
 public class DriverAppApplication implements CommandLineRunner {
@@ -47,6 +51,51 @@ public class DriverAppApplication implements CommandLineRunner {
         return new JwtUtil();
     }
 
+    private Socket socket;
+
+    @Bean
+    public Socket creatSocket() throws Exception {
+        // Create a Socket.IO connection to the server
+        this.socket = IO.socket("https://messageio.onrender.com?username=be");
+        this.socket.connect();
+        // Listen for connection
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                System.out.println("Connected to the server!");
+                socket.emit("message", "Hello from Java client!");
+            }
+        });
+
+        // Listen for "message" event from server
+        socket.on("message", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                System.out.println("Message from server: " + args[0]);
+            }
+        });
+
+        // Listen for the custom "rideAccepted" event
+        socket.on("user_disconnected", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                System.out.println("User disconnected: " + args[0]);
+            }
+        });
+
+        socket.on("connect_notification", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                System.out.println("User connected: " + args[0]);
+            }
+        });
+
+        // Connect to the server
+
+        return socket;
+    }
+
+
     @Override
     public void run(String... args) {
         if (cloudinary != null) {
@@ -54,5 +103,6 @@ public class DriverAppApplication implements CommandLineRunner {
         } else {
             System.out.println("Cloudinary bean is null.");
         }
+        socket.emit("4", "Hello");
     }
 }

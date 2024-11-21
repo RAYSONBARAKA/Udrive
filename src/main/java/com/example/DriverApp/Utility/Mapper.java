@@ -21,4 +21,14 @@ public class Mapper {
         }
         return t;
     }
+
+    public static String classToString(Object obj){
+        try{
+            return jsonMapper.writeValueAsString(obj);
+        }catch(Exception e){
+            log.error("Failed to stringify: {}", e.getLocalizedMessage());
+            return null;
+        }
+        
+    }
 }

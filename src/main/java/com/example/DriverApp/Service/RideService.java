@@ -1,29 +1,39 @@
 package com.example.DriverApp.Service;
 
-import io.socket.client.Socket;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import com.example.DriverApp.DTO.DriverSocketDto;
+import com.example.DriverApp.DTO.Message;
 import com.example.DriverApp.Entities.*;
 import com.example.DriverApp.Repositories.*;
+import com.example.DriverApp.SocketIo.SocketIOClient;
+import com.example.DriverApp.Utility.Mapper;
 
+import io.socket.client.Socket;
+
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import java.time.LocalDateTime;
 
+ 
 @Service
-public class RideService {
+ public class RideService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RideService.class);
+
 
     @Autowired
     private NotificationRepository notificationRepository;
-
-    @Autowired
-    private EmailService emailService;
+ 
 
     @Autowired
     private RideRequestRepository rideRequestRepository;
@@ -37,8 +47,11 @@ public class RideService {
     @Autowired
     private CarServiceRepository carServiceRepository;
 
+  
+
     @Autowired
-    private JavaMailSender mailSender;
+    Socket socket;
+   
 
     @Autowired
     private DriverDetailsRepository driverDetailsRepository;
@@ -161,58 +174,99 @@ public class RideService {
         return rideRequests;
     }
 
+   
     public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long rideRequestId) {
-        // Fetch the driver from the repository
+        LOGGER.info("Driver {} accepting ride request {}", driverId, rideRequestId);
+
         Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Driver not found"));
-    
-        // Fetch the ride request from the repository
+                .orElseThrow(() -> {
+                    LOGGER.error("Driver with ID {} not found", driverId);
+                    return new RuntimeException("Driver not found");
+                });
+
         RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
-                .orElseThrow(() -> new RuntimeException("Ride request not found"));
-    
-        // Ensure the ride request is in "Pending" status before accepting
+                .orElseThrow(() -> {
+                    LOGGER.error("RideRequest with ID {} not found", rideRequestId);
+                    return new RuntimeException("Ride request not found");
+                });
+
         if (!"Pending".equals(rideRequest.getStatus())) {
-            throw new RuntimeException("This ride request cannot be accepted as it is no longer pending.");
+            LOGGER.error("RideRequest {} is not in Pending status", rideRequestId);
+            throw new RuntimeException("Ride request is no longer pending");
         }
-    
-        // Change the status of the ride request to "Accepted" and assign the driver
+
         rideRequest.setStatus("Accepted");
         rideRequest.setDriver(driver);
-    
-        // Save the updated ride request in the repository
         rideRequestRepository.save(rideRequest);
-    
-        // Create and save the driver details
+        LOGGER.info("RideRequest {} status updated to Accepted", rideRequestId);
+
         DriverDetails driverDetails = new DriverDetails();
         driverDetails.setDriverId(driver.getId());
+        driverDetails.setLongitude(driver.getLongitude());
+        driverDetails.setLatitude(driver.getLatitude());
+        driverDetails.setProfilePictureUrl(driver.getProfilePictureUrl());
+        driverDetails.setPhoneNumber(driver.getPhoneNumber());
+
+
+
         driverDetails.setDriverName(driver.getFullName());
-        driverDetails.setDriverPhone(driver.getPhoneNumber());  // Assuming the driver's phone number is in the Driver entity
-        driverDetails.setCustomerId(rideRequest.getCustomer().getId());
-        driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());  // Assuming you have this in the Driver entity
-        driverDetails.setVehicleMake(driver.getVehicleMake());  // Assuming you have this in the Driver entity
-        driverDetails.setFullName(driver.getFullName());
-    
-        // Set the ride request if needed (optional)
-        driverDetails.setRideRequest(rideRequest);
-    
-        // Save the driver details to the database
+         driverDetails.setCustomerId(rideRequest.getCustomer().getId());
+        driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());
+        driverDetails.setVehicleMake(driver.getVehicleMake());
         driverDetailsRepository.save(driverDetails);
-    
-        // Prepare the response map
+        LOGGER.info("Driver details for Driver {} saved successfully", driverId);
+
+        DriverSocketDto driverSocketDto = DriverSocketDto.builder()
+                .driverName(driver.getFullName())
+                .id(driverId)
+                .eta("40 mins")
+                .build();
+
+        Message message = Message.builder()
+                .to(String.valueOf(rideRequest.getCustomer().getId()))
+                .message(Mapper.classToString(driverSocketDto))
+                .build();
+
+        try {
+            socket.emit("server", message);
+            LOGGER.info("Ride accepted notification sent via Socket.IO");
+        } catch (Exception e) {
+            LOGGER.error("Failed to send ride accepted notification: {}", e.getMessage(), e);
+        }
+
         Map<String, Object> response = new HashMap<>();
         response.put("status", "100 CONTINUE");
         response.put("data", rideRequest);
-        response.put("message", "Ride request accepted and driver details stored.");
+        response.put("message", "Ride request accepted and driver details stored");
+        LOGGER.info("RideRequest {} acceptance process completed successfully", rideRequestId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    public ResponseEntity<Map<String, Object>> getRecentDriverDetailsByCustomerId(Long customerId) {
+        LOGGER.info("Fetching the most recent driver detail by ID for customer ID {}", customerId);
+    
+        // Fetch the most recently entered DriverDetails for the given customer ID
+        DriverDetails recentDriverDetails = driverDetailsRepository.findTopByCustomerIdOrderByIdDesc(customerId)
+                .orElseThrow(() -> {
+                    LOGGER.error("No driver details found for customer ID {}", customerId);
+                    return new RuntimeException("No recent driver details found for this customer");
+                });
+    
+        // Prepare the response with the most recent record
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "200 OK");
+        response.put("data", recentDriverDetails); // Only one record
+        response.put("message", "Most recent driver detail fetched successfully");
+    
+        LOGGER.info("Successfully fetched the most recent driver detail for customer ID {}", customerId);
     
         return ResponseEntity.ok(response);
     }
     
+    
 
-    // Get notification by ID
-    public Notification getNotificationById(Long notificationId) {
-        return notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
-    }
+
 
     // Get recent notification for a customer
     public ResponseEntity<Map<String, Object>> getRecentNotification(Long customerId) {

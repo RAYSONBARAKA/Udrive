@@ -1,5 +1,10 @@
 package com.example.DriverApp.Entities;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,11 +20,70 @@ public class DriverDetails {
 
     private Long driverId;
     private String driverName;
-    private String driverPhone;   
+    private String phoneNumber;
+    private String profilePictureUrl;
+    private Double longitude; 
+    private Double latitude;   
+  
+
+     public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+
     private Long customerId;
     private String vehicleRegistrationNumber;
     private String vehicleMake;
     private String fullName;
+
+       @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
 
     public Long getId() {
@@ -52,14 +116,7 @@ public class DriverDetails {
     }
 
 
-    public String getDriverPhone() {
-        return driverPhone;
-    }
-
-
-    public void setDriverPhone(String driverPhone) {
-        this.driverPhone = driverPhone;
-    }
+    
 
 
     public Long getCustomerId() {

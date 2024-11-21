@@ -8,6 +8,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\CarServiceC
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\CustomerController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\DriverAvailabilityController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\DriverController.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\DriverDetailsController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\DriverLocationController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\LocationWebSocketController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\MoverController.java
@@ -28,8 +29,10 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\CustomerDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\CustomerInfoDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\DriverDetailsDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\DriverInfoDTO.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\DriverSocketDto.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\LoginRequest.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\LoginResponse.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\Message.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\PasswordResetRequestDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\PasswordResetWithOtpRequest.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RegisterResponse.java

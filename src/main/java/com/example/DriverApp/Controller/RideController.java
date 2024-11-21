@@ -109,7 +109,10 @@ public ResponseEntity<Map<String, Object>> acceptRideRequest(
         DriverDetails driverDetails = new DriverDetails();
         driverDetails.setDriverId(driver.getId());
         driverDetails.setDriverName(driver.getFullName());
-        driverDetails.setDriverPhone(driver.getPhoneNumber());  // Assuming driver has a phone number
+        driverDetails.setLongitude(driver.getLongitude());
+        driverDetails.setLatitude(driver.getLatitude());
+        driverDetails.setProfilePictureUrl(driver.getProfilePictureUrl());
+        driverDetails.setPhoneNumber(driver.getPhoneNumber());
         driverDetails.setCustomerId(rideRequest.getCustomer().getId());
         driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());  // Assuming driver's vehicle registration number is available
         driverDetails.setVehicleMake(driver.getVehicleMake());  // Assuming driver's vehicle make is available
@@ -120,7 +123,7 @@ public ResponseEntity<Map<String, Object>> acceptRideRequest(
 
         // Prepare response map
         response.put("status", "100 CONTINUE");
-        response.put("data", null);  // No specific data to return, as the ride is accepted
+        response.put("data", null);  
         response.put("message", "Ride request accepted and driver details saved successfully.");
 
         return ResponseEntity.ok(response);
