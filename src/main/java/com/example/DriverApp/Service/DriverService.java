@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-
+import java.io.File;
+ 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -34,15 +35,11 @@ public class DriverService {
 
     @Autowired
     private DriverRepository driverRepository;
-
-    @Autowired
-private NotificationRepository notificationRepository;
+ 
 
     @Autowired
     private CloudinaryService cloudinaryService;
 
-    @Autowired
-    private RideRequestRepository rideRequestRepository;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -59,55 +56,64 @@ private NotificationRepository notificationRepository;
     // ==================== Driver Management ====================
 
     public Driver saveDriver(
-        Driver driver, 
-        MultipartFile criminalBackgroundCheckFile, 
-        MultipartFile licenseNumberFile, 
-        MultipartFile insuranceDetailsFile) throws Exception {
-    
-        // Check if the email already exists
-        if (emailExists(driver.getEmail())) {
-            throw new Exception("Email is already registered.");
-        }
-    
-        // Encrypt the password
-        driver.setPassword(passwordEncoder.encode(driver.getPassword()));
-        driver.setStatus("Pending");  // Set status to "Pending" initially
-    
-        // Upload files to Cloudinary and get URLs
-        String criminalBackgroundCheckUrl = uploadFileAndGetUrl(criminalBackgroundCheckFile, "Criminal Background Check");
-        String licenseNumberUrl = uploadFileAndGetUrl(licenseNumberFile, "License Number");
-        String insuranceDetailsUrl = uploadFileAndGetUrl(insuranceDetailsFile, "Insurance Details");
-    
-        // Set the URLs in the driver entity
-        driver.setCriminalBackgroundCheckUrl(criminalBackgroundCheckUrl);
-        driver.setLicenseNumberUrl(licenseNumberUrl);
-        driver.setInsuranceDetailsUrl(insuranceDetailsUrl);
-    
-        // Save the driver with all details and documents
-        return driverRepository.save(driver);
-    }
-    private String uploadFileAndGetUrl(MultipartFile file, String fileType) throws Exception {
-        if (file == null || file.isEmpty()) {
-            throw new Exception(fileType + " file is required and cannot be empty.");
-        }
-    
-        try {
-            Map<String, Object> uploadResult = cloudinaryService.uploadFile(file);
-            String fileUrl = (String) uploadResult.get("url");
-    
-            if (fileUrl == null || fileUrl.isEmpty()) {
-                throw new Exception(fileType + " upload failed: URL is empty.");
-            }
-    
-            // Log the upload result (optional, for debugging)
-            logger.info(fileType + " uploaded successfully: " + fileUrl);
-    
-            return fileUrl;
-        } catch (IOException e) {
-            throw new Exception(fileType + " upload failed: " + e.getMessage());
+        Driver driver,
+        MultipartFile criminalBackgroundCheckFile,
+        MultipartFile licenseNumberFile,
+        MultipartFile insuranceDetailsFile
+) throws Exception {
+
+     String saveDirectory = "C:\\Users\\user\\Pictures\\Screenshots";
+
+    // Ensure directory exists
+    File directory = new File(saveDirectory);
+    if (!directory.exists()) {
+        if (!directory.mkdirs()) {
+            throw new Exception("Failed to create directory: " + saveDirectory);
         }
     }
-    
+
+    // Check if the email already exists
+    if (emailExists(driver.getEmail())) {
+        throw new Exception("Email is already registered.");
+    }
+
+    // Encrypt the password
+    driver.setPassword(passwordEncoder.encode(driver.getPassword()));
+    driver.setStatus("Pending");  // Set status to "Pending" initially
+
+    // Save the files locally
+    String criminalBackgroundCheckPath = saveFileLocally(criminalBackgroundCheckFile, saveDirectory, "criminalBackgroundCheckFile");
+    String licenseNumberPath = saveFileLocally(licenseNumberFile, saveDirectory, "licenseNumberFile");
+    String insuranceDetailsPath = saveFileLocally(insuranceDetailsFile, saveDirectory, "insuranceDetailsFile");
+
+    // Set the local file paths in the driver entity
+    driver.setCriminalBackgroundCheckUrl(criminalBackgroundCheckPath);
+    driver.setLicenseNumberUrl(licenseNumberPath);
+    driver.setInsuranceDetailsUrl(insuranceDetailsPath);
+
+    // Save the driver with all details and documents
+    return driverRepository.save(driver);
+}
+
+private String saveFileLocally(MultipartFile file, String saveDirectory, String filePrefix) throws Exception {
+    if (file == null || file.isEmpty()) {
+        throw new Exception(filePrefix + " file is required and cannot be empty.");
+    }
+
+    try {
+        // Create a unique file name to prevent overwrites
+        String fileName = filePrefix + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        File destinationFile = new File(saveDirectory, fileName);
+
+        // Save the file
+        file.transferTo(destinationFile);
+
+        // Return the absolute file path
+        return destinationFile.getAbsolutePath();
+    } catch (IOException e) {
+        throw new Exception("Failed to save " + filePrefix + " locally: " + e.getMessage());
+    }
+}
     // Approve the driver by setting status to "Approved"
     public Driver approveDriver(Long driverId) {
         Driver driver = driverRepository.findById(driverId)
