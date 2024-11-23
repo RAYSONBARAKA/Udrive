@@ -47,10 +47,10 @@ public ResponseEntity<UpdateResponse> updateCarServices(
     UpdateResponse response = carServiceService.updateCarServices(serviceName, updatedServices);
     
     if (response.getUpdatedServices() != null && !response.getUpdatedServices().isEmpty()) {
-        return ResponseEntity.ok(response);  // Return updated services and success message
+        return ResponseEntity.ok(response);   
     }
     
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);  // Return not found with message
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);  
 }
 
     

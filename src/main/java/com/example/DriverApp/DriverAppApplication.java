@@ -14,14 +14,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestTemplate;
 
 import com.cloudinary.Cloudinary;
+import com.example.DriverApp.DTO.Message;
 import com.example.DriverApp.Utility.JwtUtil;
+import com.example.DriverApp.Utility.Mapper;
 
+import io.socket.client.Ack;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import io.socket.emitter.Emitter.Listener;
 
 @SpringBootApplication
-@EnableScheduling 
+@EnableScheduling
 public class DriverAppApplication implements CommandLineRunner {
 
     @Autowired
@@ -63,7 +67,12 @@ public class DriverAppApplication implements CommandLineRunner {
             @Override
             public void call(Object... args) {
                 System.out.println("Connected to the server!");
-                socket.emit("message", "Hello from Java client!");
+
+                Message message = Message.builder()
+                        .to("4")
+                        .message("Hello to fe")
+                        .build();
+                socket.emit("server", Mapper.classToString(message));
             }
         });
 
@@ -89,12 +98,10 @@ public class DriverAppApplication implements CommandLineRunner {
                 System.out.println("User connected: " + args[0]);
             }
         });
-
         // Connect to the server
 
         return socket;
     }
-
 
     @Override
     public void run(String... args) {
@@ -103,6 +110,12 @@ public class DriverAppApplication implements CommandLineRunner {
         } else {
             System.out.println("Cloudinary bean is null.");
         }
-        socket.emit("4", "Hello");
+        Message message = Message.builder()
+                .to("4")
+                .message("Hello")
+                .build();
+        socket.emit("server", message);
     }
+
+    
 }

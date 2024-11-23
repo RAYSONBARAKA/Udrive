@@ -55,6 +55,7 @@ com\example\DriverApp\Repositories\MoverRepository.class
 com\example\DriverApp\DTO\UpdateResponse.class
 com\example\DriverApp\Entities\Mover.class
 com\example\DriverApp\Entities\Notification.class
+com\example\DriverApp\DTO\PendingRideRequestDTO.class
 com\example\DriverApp\Entities\CustomerLocation.class
 com\example\DriverApp\DTO\DriverInfoDTO.class
 com\example\DriverApp\Configuration\CloudinaryConfig.class

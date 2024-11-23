@@ -12,6 +12,9 @@ public interface DriverDetailsRepository extends JpaRepository<DriverDetails, Lo
 
     Optional<DriverDetails> findTopByCustomerIdOrderByCreatedAtDesc(Long customerId);
     Optional<DriverDetails> findTopByCustomerIdOrderByIdDesc(Long customerId);
+    DriverDetails findByRideRequestId(Long rideRequestId);
+    Optional<DriverDetails> findTopByCustomerIdAndStatusOrderByIdDesc(Long customerId, String status);
+    boolean existsByDriverIdAndCustomerId(Long driverId, Long customerId);
 
 
  }

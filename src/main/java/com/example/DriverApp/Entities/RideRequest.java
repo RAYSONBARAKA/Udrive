@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.persistence.Column;
 
 @Entity
@@ -33,6 +34,9 @@ public class RideRequest {
 
     @Column(nullable = true) // Allow price to be null
     private Double price; // Changed to Double to allow nulls
+
+    @Version
+    private Long version;
 
     private String vehicleType;
     private String serviceName;  

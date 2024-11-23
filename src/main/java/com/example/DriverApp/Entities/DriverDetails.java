@@ -14,7 +14,8 @@ import jakarta.persistence.ManyToOne;
 
 @Entity
 public class DriverDetails {
-      @Id
+    
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -22,156 +23,134 @@ public class DriverDetails {
     private String driverName;
     private String phoneNumber;
     private String profilePictureUrl;
-    private Double longitude; 
+    private Double longitude;
     private Double latitude;   
-  
-
-     public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-
-    public String getProfilePictureUrl() {
-        return profilePictureUrl;
-    }
-
-
-    public void setProfilePictureUrl(String profilePictureUrl) {
-        this.profilePictureUrl = profilePictureUrl;
-    }
-
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
+    private String status;
 
     private Long customerId;
     private String vehicleRegistrationNumber;
     private String vehicleMake;
     private String fullName;
 
-       @CreationTimestamp
+    @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne
+    @JoinColumn(name = "ride_request_id") // This will link the DriverDetails entity to the RideRequest entity using the ride_request_id column
+    private RideRequest rideRequest;
+
+    // Getters and Setters
 
     public Long getId() {
         return id;
     }
 
-
     public void setId(Long id) {
         this.id = id;
     }
-
 
     public Long getDriverId() {
         return driverId;
     }
 
-
     public void setDriverId(Long driverId) {
         this.driverId = driverId;
     }
-
 
     public String getDriverName() {
         return driverName;
     }
 
-
     public void setDriverName(String driverName) {
         this.driverName = driverName;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 
-    
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public Long getCustomerId() {
         return customerId;
     }
 
-
     public void setCustomerId(Long customerId) {
         this.customerId = customerId;
     }
-
 
     public String getVehicleRegistrationNumber() {
         return vehicleRegistrationNumber;
     }
 
-
     public void setVehicleRegistrationNumber(String vehicleRegistrationNumber) {
         this.vehicleRegistrationNumber = vehicleRegistrationNumber;
     }
-
 
     public String getVehicleMake() {
         return vehicleMake;
     }
 
-
     public void setVehicleMake(String vehicleMake) {
         this.vehicleMake = vehicleMake;
     }
-
 
     public String getFullName() {
         return fullName;
     }
 
-
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
-
 
     public RideRequest getRideRequest() {
         return rideRequest;
     }
 
-
     public void setRideRequest(RideRequest rideRequest) {
         this.rideRequest = rideRequest;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 
-    @ManyToOne
-    @JoinColumn(name = "ride_request_id")
-    private RideRequest rideRequest;   
-
- }
-
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+}

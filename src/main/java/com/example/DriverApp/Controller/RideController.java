@@ -1,6 +1,7 @@
 package com.example.DriverApp.Controller;
 
 import com.example.DriverApp.DTO.ApiResponse;
+import com.example.DriverApp.DTO.PendingRideRequestDTO;
 import com.example.DriverApp.Entities.ArchiveNotification;
 import com.example.DriverApp.Entities.Driver;
 import com.example.DriverApp.Entities.DriverDetails;
@@ -12,6 +13,8 @@ import com.example.DriverApp.Repositories.ArchiveNotificationRepository;
 import com.example.DriverApp.Repositories.DriverDetailsRepository;
 import com.example.DriverApp.Repositories.NotificationRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +37,9 @@ public class RideController {
 
    @Autowired
     private ArchiveNotificationRepository archiveNotificationRepository;
+
+        private static final Logger LOGGER = LoggerFactory.getLogger(RideController.class);
+
  
      
 
@@ -79,58 +85,99 @@ public class RideController {
                 customerId, vehicleType, dropOffLatitude, dropOffLongitude, serviceId);
         return ResponseEntity.ok(rideRequests);
     }
-
-    // Endpoint to get pending ride requests for a driver
-    @GetMapping("/ride-requests/pending")
-    public ResponseEntity<List<RideRequest>> getPendingRideRequests(
-            @RequestParam Long driverId) {
-
-        List<RideRequest> pendingRequests = rideService.getPendingRideRequestsForDriver(driverId);
+    @GetMapping("/ride-requests/pending-by-service")
+    public ResponseEntity<List<PendingRideRequestDTO>> getPendingRideRequestsByServiceId(
+            @RequestParam Long serviceId) {
+    
+        LOGGER.info("Received request to fetch pending ride requests for Service ID: {}", serviceId);
+    
+        List<PendingRideRequestDTO> pendingRequests = rideService.getPendingRideRequestsByServiceId(serviceId);
+    
         return ResponseEntity.ok(pendingRequests);
     }
+    
 
-    // Endpoint for a driver to accept a ride request
-   @PostMapping("/accept")
-public ResponseEntity<Map<String, Object>> acceptRideRequest(
-        @RequestParam Long driverId,
-        @RequestParam Long rideRequestId) {
 
-    Map<String, Object> response = new HashMap<>();
-
-    try {
-         rideService.acceptRideRequest(driverId, rideRequestId);
-
-         RideRequest rideRequest = rideService.getRideRequestById(rideRequestId);
-
-         Driver driver = rideRequest.getDriver();   
-        DriverDetails driverDetails = new DriverDetails();
-        driverDetails.setDriverId(driver.getId());
-        driverDetails.setDriverName(driver.getFullName());
-        driverDetails.setLongitude(driver.getLongitude());
-        driverDetails.setLatitude(driver.getLatitude());
-        driverDetails.setProfilePictureUrl(driver.getProfilePictureUrl());
-        driverDetails.setPhoneNumber(driver.getPhoneNumber());
-        driverDetails.setCustomerId(rideRequest.getCustomer().getId());
-        driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());  
-        driverDetails.setVehicleMake(driver.getVehicleMake());   
-        driverDetails.setFullName(driver.getFullName());
-
-        // Save driver details to the database
-        driverDetailsRepository.save(driverDetails);
-
-        // Prepare response map
-        response.put("status", "100 CONTINUE");
-        response.put("data", null);  
-        response.put("message", "Ride request accepted and driver details saved successfully.");
-
-        return ResponseEntity.ok(response);
-    } catch (RuntimeException e) {
-        response.put("status", "400 BAD REQUEST");
-        response.put("data", null);
-        response.put("message", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    @PostMapping("/accept")
+    public ResponseEntity<Map<String, Object>> acceptRideRequest(
+            @RequestParam Long driverId,
+            @RequestParam Long rideRequestId) {
+    
+        Map<String, Object> response = new HashMap<>();
+    
+        try {
+            // Check if the driver has already accepted this ride request
+            boolean exists = driverDetailsRepository.existsByDriverIdAndCustomerId(driverId, rideRequestId);
+            if (exists) {
+                response.put("status", "409 CONFLICT");
+                response.put("data", null);
+                response.put("message", "Driver has already accepted this ride request.");
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            }
+    
+            // Accept the ride request
+            rideService.acceptRideRequest(driverId, rideRequestId);
+    
+            // Fetch ride request and driver details
+            RideRequest rideRequest = rideService.getRideRequestById(rideRequestId);
+            Driver driver = rideRequest.getDriver();
+    
+            // Populate DriverDetails
+            DriverDetails driverDetails = new DriverDetails();
+            driverDetails.setDriverId(driver.getId());
+            driverDetails.setDriverName(driver.getFullName());
+            driverDetails.setLongitude(driver.getLongitude());
+            driverDetails.setLatitude(driver.getLatitude());
+            driverDetails.setProfilePictureUrl(driver.getProfilePictureUrl());
+            driverDetails.setPhoneNumber(driver.getPhoneNumber());
+            driverDetails.setCustomerId(rideRequest.getCustomer().getId());
+            driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());
+            driverDetails.setVehicleMake(driver.getVehicleMake());
+            driverDetails.setFullName(driver.getFullName());
+            driverDetails.setStatus("incomplete");
+    
+            // Save the details
+            driverDetailsRepository.save(driverDetails);
+    
+            response.put("status", "100 CONTINUE");
+            response.put("data", null);
+            response.put("message", "Ride request accepted and driver details saved successfully.");
+    
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            response.put("status", "400 BAD REQUEST");
+            response.put("data", null);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
-}
+    
+
+    @PostMapping("/end-trip/markComplete")
+    public ResponseEntity<Map<String, Object>> markRideAsComplete(@RequestParam Long rideRequestId) {
+        return updateRideStatus(rideRequestId, "complete", "Ride marked as complete successfully.");
+    }
+
+    private ResponseEntity<Map<String, Object>> updateRideStatus(Long rideRequestId, String status, String successMessage) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // Call service method to update status
+            rideService.updateRideStatus(rideRequestId, status);
+
+            // Prepare response
+            response.put("status", "200 CONTINUE");
+            response.put("data", null);
+            response.put("message", successMessage);
+
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            response.put("status", "400 BAD REQUEST");
+            response.put("data", null);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+    
 
 
     

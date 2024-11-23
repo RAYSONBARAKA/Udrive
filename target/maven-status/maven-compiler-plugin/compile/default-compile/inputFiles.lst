@@ -35,6 +35,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\LoginResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\Message.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\PasswordResetRequestDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\PasswordResetWithOtpRequest.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\PendingRideRequestDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RegisterResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideEstimateDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideRequestDTO.java

@@ -8,12 +8,14 @@ import org.springframework.stereotype.Service;
 
 import com.example.DriverApp.DTO.DriverSocketDto;
 import com.example.DriverApp.DTO.Message;
+import com.example.DriverApp.DTO.PendingRideRequestDTO;
 import com.example.DriverApp.Entities.*;
 import com.example.DriverApp.Repositories.*;
 import com.example.DriverApp.SocketIo.SocketIOClient;
 import com.example.DriverApp.Utility.Mapper;
 
 import io.socket.client.Socket;
+import jakarta.transaction.Transactional;
 
 import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
@@ -55,6 +57,13 @@ import java.util.stream.Collectors;
 
     @Autowired
     private DriverDetailsRepository driverDetailsRepository;
+
+    public RideService(RideRequestRepository rideRequestRepository, DriverRepository driverRepository) {
+        this.rideRequestRepository = rideRequestRepository;
+        this.driverRepository = driverRepository;
+    }
+ 
+    
 
     // DTO for car service response (vehicle type and calculated price)
     public static class CarServiceResponse {
@@ -141,18 +150,21 @@ import java.util.stream.Collectors;
         return EARTH_RADIUS * c;
     }
 
+
+
+
     // Send requests to drivers with the same vehicle type
     public List<RideRequest> sendRequestToDriversWithSameVehicleType(Long customerId, String vehicleType, double dropOffLatitude, double dropOffLongitude, Long serviceId) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
-
+    
         double pickupLatitude = customer.getLatitude();
         double pickupLongitude = customer.getLongitude();
-
+    
         List<Driver> drivers = driverRepository.findByVehicleTypeAndActive(vehicleType, true);
         CarService carService = carServiceRepository.findById(serviceId)
                 .orElseThrow(() -> new RuntimeException("CarService not found with ID: " + serviceId));
-
+    
         List<RideRequest> rideRequests = new ArrayList<>();
         for (Driver driver : drivers) {
             RideRequest rideRequest = new RideRequest();
@@ -165,111 +177,124 @@ import java.util.stream.Collectors;
             rideRequest.setStatus("Pending");
             rideRequest.setServiceId(serviceId);
             rideRequest.setCarService(carService);
-            rideRequest.setServiceName(carService.getName());
+            rideRequest.setServiceName(carService.getName());  
             rideRequest.setVehicleType(vehicleType);
             rideRequest.setDriverName(driver.getFullName());
-
+    
             rideRequests.add(rideRequestRepository.save(rideRequest));
         }
         return rideRequests;
     }
 
-   
+    
     public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long rideRequestId) {
         LOGGER.info("Driver {} accepting ride request {}", driverId, rideRequestId);
-
+    
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> {
                     LOGGER.error("Driver with ID {} not found", driverId);
                     return new RuntimeException("Driver not found");
                 });
-
+    
         RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
                 .orElseThrow(() -> {
                     LOGGER.error("RideRequest with ID {} not found", rideRequestId);
                     return new RuntimeException("Ride request not found");
                 });
-
+    
         if (!"Pending".equals(rideRequest.getStatus())) {
             LOGGER.error("RideRequest {} is not in Pending status", rideRequestId);
             throw new RuntimeException("Ride request is no longer pending");
         }
-
+    
+        // Update ride request status and assign driver to the ride request
         rideRequest.setStatus("Accepted");
         rideRequest.setDriver(driver);
-        rideRequestRepository.save(rideRequest);
+        rideRequestRepository.save(rideRequest);  
         LOGGER.info("RideRequest {} status updated to Accepted", rideRequestId);
-
+    
+        // Save DriverDetails with the updated rideRequest
         DriverDetails driverDetails = new DriverDetails();
         driverDetails.setDriverId(driver.getId());
         driverDetails.setLongitude(driver.getLongitude());
         driverDetails.setLatitude(driver.getLatitude());
         driverDetails.setProfilePictureUrl(driver.getProfilePictureUrl());
         driverDetails.setPhoneNumber(driver.getPhoneNumber());
-
-
-
         driverDetails.setDriverName(driver.getFullName());
-         driverDetails.setCustomerId(rideRequest.getCustomer().getId());
+        driverDetails.setCustomerId(rideRequest.getCustomer().getId());
         driverDetails.setVehicleRegistrationNumber(driver.getVehicleRegistrationNumber());
         driverDetails.setVehicleMake(driver.getVehicleMake());
-        driverDetailsRepository.save(driverDetails);
+    
+         driverDetails.setRideRequest(rideRequest);
+    
+        driverDetailsRepository.save(driverDetails);  
         LOGGER.info("Driver details for Driver {} saved successfully", driverId);
-
+    
+        // Prepare and send Socket.IO message
         DriverSocketDto driverSocketDto = DriverSocketDto.builder()
                 .driverName(driver.getFullName())
                 .id(driverId)
                 .eta("40 mins")
                 .build();
-
+    
         Message message = Message.builder()
                 .to(String.valueOf(rideRequest.getCustomer().getId()))
                 .message(Mapper.classToString(driverSocketDto))
                 .build();
-
+    
         try {
-            socket.emit("server", message);
+            socket.emit("server", Mapper.classToString(message));
             LOGGER.info("Ride accepted notification sent via Socket.IO");
         } catch (Exception e) {
             LOGGER.error("Failed to send ride accepted notification: {}", e.getMessage(), e);
         }
-
+    
+        // Prepare response
         Map<String, Object> response = new HashMap<>();
         response.put("status", "100 CONTINUE");
         response.put("data", rideRequest);
         response.put("message", "Ride request accepted and driver details stored");
         LOGGER.info("RideRequest {} acceptance process completed successfully", rideRequestId);
-
+    
         return ResponseEntity.ok(response);
     }
-
-
-    //getting the drive details frolm the database 
     
+    //getting the drive details frolm the database 
 
     public ResponseEntity<Map<String, Object>> getRecentDriverDetailsByCustomerId(Long customerId) {
         LOGGER.info("Fetching the most recent driver detail by ID for customer ID {}", customerId);
     
-        // Fetch the most recently entered DriverDetails for the given customer ID
-        DriverDetails recentDriverDetails = driverDetailsRepository.findTopByCustomerIdOrderByIdDesc(customerId)
+        // Fetch the most recently entered DriverDetails for the given customer ID where status is "incomplete"
+        DriverDetails recentDriverDetails = driverDetailsRepository.findTopByCustomerIdAndStatusOrderByIdDesc(customerId, "incomplete")
                 .orElseThrow(() -> {
-                    LOGGER.error("No driver details found for customer ID {}", customerId);
-                    return new RuntimeException("No recent driver details found for this customer");
+                    LOGGER.error("No incomplete driver details found for customer ID {}", customerId);
+                    return new RuntimeException("No incomplete driver details found for this customer");
                 });
     
         // Prepare the response with the most recent record
         Map<String, Object> response = new HashMap<>();
         response.put("status", "200 OK");
         response.put("data", recentDriverDetails); // Only one record
-        response.put("message", "Most recent driver detail fetched successfully");
+        response.put("message", "Most recent incomplete driver detail fetched successfully");
     
-        LOGGER.info("Successfully fetched the most recent driver detail for customer ID {}", customerId);
+        LOGGER.info("Driver is on his way {}", customerId);
     
         return ResponseEntity.ok(response);
     }
     
+    public void updateRideStatus(Long rideRequestId, String status) {
+        // Fetch DriverDetails by rideRequestId
+        DriverDetails driverDetails = driverDetailsRepository.findByRideRequestId(rideRequestId);
     
-
+        if (driverDetails == null) {
+            throw new RuntimeException("Driver details not found for rideRequestId: " + rideRequestId);
+        }
+    
+        // Update status and save
+        driverDetails.setStatus(status);
+        driverDetailsRepository.save(driverDetails);
+    }
+    
 
 
     // Get recent notification for a customer
@@ -324,15 +349,36 @@ import java.util.stream.Collectors;
         rideRequest.setStatus("COMPLETED");
         rideRequestRepository.save(rideRequest);
     }
+
+
+
+
  
-    // Get pending ride requests for a driver
-    public List<RideRequest> getPendingRideRequestsForDriver(Long driverId) {
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Driver not found"));
 
-        return rideRequestRepository.findByDriverAndStatus(driver, "Pending");
+    public List<PendingRideRequestDTO> getPendingRideRequestsByServiceId(Long serviceId) {
+        LOGGER.info("Fetching all pending ride requests for Service ID: {}", serviceId);
+    
+        // Fetch pending ride requests
+        List<RideRequest> rideRequests = rideRequestRepository.findPendingRidesByServiceId("Pending", serviceId);
+    
+        if (rideRequests.isEmpty()) {
+            LOGGER.warn("No pending ride requests found for Service ID: {}", serviceId);
+        } else {
+            LOGGER.info("Found {} pending ride requests for Service ID: {}", rideRequests.size(), serviceId);
+        }
+    
+        // Convert to DTO
+        return rideRequests.stream()
+                .map(rideRequest -> new PendingRideRequestDTO(
+                        rideRequest.getId(),
+                        rideRequest.getCustomer().getFirstName(),
+                        rideRequest.getCustomer().getLastName(),
+                        rideRequest.getCustomer().getLatitude(),
+                        rideRequest.getCustomer().getLongitude(),
+                        rideRequest.getCustomer().getPhoneNumber()
+                ))
+                .toList();
     }
-
     // Get ride request by ID
     public RideRequest getRideRequestById(Long rideRequestId) {
         return rideRequestRepository.findById(rideRequestId)
