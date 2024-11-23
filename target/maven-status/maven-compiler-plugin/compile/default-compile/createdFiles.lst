@@ -10,11 +10,13 @@ com\example\DriverApp\DTO\CarServiceResponse.class
 com\example\DriverApp\Entities\Products.class
 com\example\DriverApp\Utility\SwaggerConf.class
 com\example\DriverApp\DriverAppApplication.class
+com\example\DriverApp\DTO\RideHistoryDTO.class
 com\example\DriverApp\Controller\ServiceController.class
 com\example\DriverApp\DTO\DriverDetailsDTO.class
 com\example\DriverApp\Service\QRCodeService.class
 com\example\DriverApp\DriverAppApplication$3.class
 com\example\DriverApp\Service\RideService.class
+com\example\DriverApp\DTO\RideResponse.class
 com\example\DriverApp\Entities\CarService.class
 com\example\DriverApp\Service\NotificationSender.class
 com\example\DriverApp\Repositories\NotificationRepository.class

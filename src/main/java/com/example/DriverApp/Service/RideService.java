@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.example.DriverApp.DTO.DriverSocketDto;
 import com.example.DriverApp.DTO.Message;
 import com.example.DriverApp.DTO.PendingRideRequestDTO;
+import com.example.DriverApp.DTO.RideHistoryDTO;
 import com.example.DriverApp.Entities.*;
 import com.example.DriverApp.Repositories.*;
 import com.example.DriverApp.SocketIo.SocketIOClient;
@@ -19,6 +20,7 @@ import jakarta.transaction.Transactional;
 
 import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,10 @@ import java.util.stream.Collectors;
 
     @Autowired
     private NotificationRepository notificationRepository;
+
+    @Autowired
+private RideHistoryRepository rideHistoryRepository;
+
  
 
     @Autowired
@@ -63,8 +69,6 @@ import java.util.stream.Collectors;
         this.driverRepository = driverRepository;
     }
  
-    
-
     // DTO for car service response (vehicle type and calculated price)
     public static class CarServiceResponse {
         private String vehicleType;
@@ -115,41 +119,42 @@ import java.util.stream.Collectors;
 }
 
 
-    // Calculate price using the Haversine formula
-    public double calculatePrice(Long customerId, String serviceName, String vehicleType, double dropOffLatitude, double dropOffLongitude) {
-        // Retrieve customer by customerId
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+   // Calculate price using the Haversine formula
+public long calculatePrice(Long customerId, String serviceName, String vehicleType, double dropOffLatitude, double dropOffLongitude) {
+    // Retrieve customer by customerId
+    Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        // Calculate distance using customer and drop-off coordinates
-        double pickupLatitude = customer.getLatitude();
-        double pickupLongitude = customer.getLongitude();
-        double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
+    // Calculate distance using customer and drop-off coordinates
+    double pickupLatitude = customer.getLatitude();
+    double pickupLongitude = customer.getLongitude();
+    double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
 
-        // Retrieve specific car service by serviceName and vehicleType
-        CarService carService = carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
-                .orElseThrow(() -> new RuntimeException("Car service not available for selected type and service"));
+    // Retrieve specific car service by serviceName and vehicleType
+    CarService carService = carServiceRepository.findByServiceNameAndVehicleType(serviceName, vehicleType)
+            .orElseThrow(() -> new RuntimeException("Car service not available for selected type and service"));
 
-        // Return the calculated price
-        return distance * carService.getRatePerKm();
-    }
+     long price = Math.round(distance * carService.getRatePerKm());  
 
-    // Haversine formula for distance calculation
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int EARTH_RADIUS = 6371; // Earth radius in kilometers
+    // Return the rounded price
+    return price;
+}
 
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
+// Haversine formula for distance calculation
+private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    final int EARTH_RADIUS = 6371; // Earth radius in kilometers
 
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+    double latDistance = Math.toRadians(lat2 - lat1);
+    double lonDistance = Math.toRadians(lon2 - lon1);
 
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+            + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+            * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
 
-        return EARTH_RADIUS * c;
-    }
+    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
+    return EARTH_RADIUS * c;
+}
 
 
 
@@ -295,6 +300,75 @@ import java.util.stream.Collectors;
         driverDetailsRepository.save(driverDetails);
     }
     
+    public void endTrip(Long rideRequestId) {
+        try {
+            // Fetch RideRequest
+            RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
+                    .orElseThrow(() -> new RuntimeException("RideRequest not found"));
+    
+            // Ensure the ride request has an associated car service
+            CarService carService = rideRequest.getCarService();
+            if (carService == null) {
+                throw new RuntimeException("CarService is not associated with this ride request");
+            }
+    
+            // Fetch Customer details
+            Customer customer = rideRequest.getCustomer();
+            if (customer == null) {
+                throw new RuntimeException("Customer not associated with the ride request");
+            }
+    
+            // Calculate distance
+            double distance = calculateDistance(
+                    customer.getLatitude(), customer.getLongitude(),
+                    rideRequest.getDropOffLatitude(), rideRequest.getDropOffLongitude()
+            );
+    
+            // Calculate total amount
+            double totalAmount = distance * carService.getRatePerKm();  // Total amount based on distance and rate per km
+    
+            // Update RideRequest status to "COMPLETED"
+            rideRequest.setStatus("COMPLETED");
+            rideRequestRepository.save(rideRequest);
+    
+            // Save ride history
+            RideHistory rideHistory = new RideHistory();
+            rideHistory.setCustomer(customer);
+            rideHistory.setPickupLatitude(customer.getLatitude());
+            rideHistory.setPickupLongitude(customer.getLongitude());
+            rideHistory.setDropOffLatitude(rideRequest.getDropOffLatitude());
+            rideHistory.setDropOffLongitude(rideRequest.getDropOffLongitude());
+            rideHistory.setDistance(distance);
+            rideHistory.setTotalAmount(totalAmount); 
+            rideHistory.setServiceName(carService.getName());    
+            rideHistory.setPrice(Math.round(totalAmount));       
+            rideHistory.setVehicleType(rideRequest.getVehicleType());
+            rideHistory.setDateCompleted(new Date());
+    
+            rideHistoryRepository.save(rideHistory);
+    
+            LOGGER.info("Trip ended and ride history saved successfully for RideRequest ID: {}", rideRequestId);
+        } catch (Exception e) {
+            LOGGER.error("Error ending trip", e);
+        }
+    }
+    
+    public List<RideHistoryDTO> getAllRideHistory() {
+        List<RideHistory> rideHistories = rideHistoryRepository.findAll();
+
+        // Convert the RideHistory entities into RideHistoryDTO objects
+        return rideHistories.stream()
+                .map(rideHistory -> new RideHistoryDTO(
+                        rideHistory.getDistance(),
+                        rideHistory.getTotalAmount(),
+                        rideHistory.getPrice(),
+                        rideHistory.getServiceName() == null ? null : rideHistory.getServiceName(),
+                        rideHistory.getVehicleType()
+                ))
+                .collect(Collectors.toList());
+    }
+    
+    
 
 
     // Get recent notification for a customer
@@ -337,18 +411,7 @@ import java.util.stream.Collectors;
         driverRepository.save(driver);
     }
 
-    // End the trip
-    public void endTrip(Long rideRequestId) {
-        RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
-                .orElseThrow(() -> new RuntimeException("RideRequest not found"));
-
-        if (rideRequest.getCarService() == null) {
-            throw new RuntimeException("CarService is not associated with this ride request");
-        }
-
-        rideRequest.setStatus("COMPLETED");
-        rideRequestRepository.save(rideRequest);
-    }
+     
 
 
 

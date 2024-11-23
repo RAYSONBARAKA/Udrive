@@ -38,9 +38,11 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\PasswordResetWithO
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\PendingRideRequestDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RegisterResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideEstimateDTO.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideHistoryDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideRequestDTO.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideRequestMessage.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideRequestWithCustomerDTO.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RideResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\RidesResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\UpdateResponse.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\DTO\UploadResponse.java
