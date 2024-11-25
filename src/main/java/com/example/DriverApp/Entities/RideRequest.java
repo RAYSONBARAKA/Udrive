@@ -29,8 +29,8 @@ public class RideRequest {
     private String pickupLocation;
     private String dropOffLocation;
 
-    @Column(nullable = true) // Allow price to be null
-    private Double price; // Changed to Double to allow nulls
+    @Column(nullable = true)  
+    private Double price; 
 
     @Version
     private Long version;

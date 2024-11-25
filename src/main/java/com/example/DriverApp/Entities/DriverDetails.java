@@ -36,11 +36,12 @@ public class DriverDetails {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "ride_request_id") // This will link the DriverDetails entity to the RideRequest entity using the ride_request_id column
-    private RideRequest rideRequest;
 
-    // Getters and Setters
+    @ManyToOne
+@JoinColumn(name = "ride_request_id") // This will link the DriverDetails entity to the RideRequest entity
+private RideRequest rideRequest;
+
+ 
 
     public Long getId() {
         return id;

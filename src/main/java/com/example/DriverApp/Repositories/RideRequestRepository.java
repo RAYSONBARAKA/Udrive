@@ -6,15 +6,25 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.example.DriverApp.Entities.Driver;
 import com.example.DriverApp.Entities.RideRequest;
 
-import jakarta.persistence.LockModeType;
-
+ 
 public interface RideRequestRepository extends JpaRepository<RideRequest, Long> {
     // Find ride requests by the Driver entity
     List<RideRequest> findByDriverId(Long driverId);
+
+    
+    @Query("SELECT rr FROM RideRequest rr " +
+    "JOIN FETCH rr.carService cs " +
+    "JOIN FETCH rr.customer c " +
+    "JOIN FETCH rr.driverDetails dd " +
+    "WHERE rr.driver.id = :driverId " +
+    "AND rr.customer.id = :customerId")
+Optional<RideRequest> findByDriverIdAndCustomerId(@Param("driverId") Long driverId, @Param("customerId") Long customerId);
+
 
     List<RideRequest> findByDriverAndStatus(Driver driver, String status);
 
@@ -34,10 +44,11 @@ public interface RideRequestRepository extends JpaRepository<RideRequest, Long> 
             @Param("serviceId") Long serviceId
 
 
+
+
+
+
     );
 
-
-//     @Lock(LockModeType.PESSIMISTIC_WRITE)
-// @Query("SELECT r FROM RideRequest r WHERE r.id = :rideRequestId")
-// RideRequest findByIdWithLock(@Param("rideRequestId") Long rideRequestId);
+ 
 }

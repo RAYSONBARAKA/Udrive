@@ -13,7 +13,18 @@ public class CarService {
 
     private String name;
 
+    @ManyToOne
+    @JoinColumn(name = "driver_id")  // Assuming you have a driver table
+    private Driver driver;
 
+    public Driver getDriver() {
+        return driver;
+    }
+
+
+    public void setDriver(Driver driver) {
+        this.driver = driver;
+    }
 
     private String vehicleType;  
 

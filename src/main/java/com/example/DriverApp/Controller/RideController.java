@@ -1,9 +1,7 @@
 package com.example.DriverApp.Controller;
 
 import com.example.DriverApp.DTO.ApiResponse;
-import com.example.DriverApp.DTO.CarServiceResponse;
-import com.example.DriverApp.DTO.PendingRideRequestDTO;
-import com.example.DriverApp.DTO.RideHistoryDTO;
+ import com.example.DriverApp.DTO.PendingRideRequestDTO;
 import com.example.DriverApp.DTO.RideResponse;
 import com.example.DriverApp.Entities.*;
 import com.example.DriverApp.Service.RideService;
@@ -32,14 +30,13 @@ public class RideController {
     @Autowired
     private DriverDetailsRepository driverDetailsRepository;
 
- 
+    
 
-   
+    
 
     private final RideRequestRepository rideRequestRepository;
     private final RideHistoryRepository rideHistoryRepository;
-    private final CarServiceRepository carServiceRepository;
-
+ 
     private static final Logger LOGGER = LoggerFactory.getLogger(RideController.class);
 
     public RideController(RideRequestRepository rideRequestRepository, 
@@ -47,8 +44,7 @@ public class RideController {
                           CarServiceRepository carServiceRepository) {
         this.rideRequestRepository = rideRequestRepository;
         this.rideHistoryRepository = rideHistoryRepository;
-        this.carServiceRepository = carServiceRepository;
-    }
+     }
 
     // Endpoint to calculate the price of a ride
     @GetMapping("/calculate-price")
@@ -180,7 +176,6 @@ public class RideController {
         }
     }
 
-     
     // Endpoint for a driver to reject a ride request
     @PostMapping("/reject")
     public ResponseEntity<ApiResponse<String>> rejectRideRequest(
@@ -196,7 +191,7 @@ public class RideController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
-
+//this is the methos of ending ride 
      @PostMapping("/endTrip/{rideRequestId}")
     public ResponseEntity<Object> endTrip(@PathVariable Long rideRequestId) {
         try {
@@ -216,33 +211,19 @@ public class RideController {
                 throw new RuntimeException("Customer not associated with the ride request");
             }
     
-            // Fetch DriverDetails and update status
-            DriverDetails driverDetails = rideRequest.getDriverDetails();
-            if (driverDetails == null) {
-                throw new RuntimeException("Driver details not associated with the ride request");
-            }
-    
-            if ("incomplete".equals(driverDetails.getStatus())) {
-                driverDetails.setStatus("completed");
-                driverDetailsRepository.save(driverDetails); // Save updated driver status
-            } else {
-                LOGGER.warn("Driver status is already set to: {}", driverDetails.getStatus());
-            }
-    
             // Calculate distance
             double distance = calculateDistance(
                     customer.getLatitude(), customer.getLongitude(),
                     rideRequest.getDropOffLatitude(), rideRequest.getDropOffLongitude()
             );
+            distance = Math.round(distance);  // Round the distance to the nearest integer
     
             // Calculate total amount
-            double totalAmount = distance * carService.getRatePerKm(); // Total amount based on distance and rate per km
-    
-            // Round totalAmount to the nearest whole number
-            long roundedTotalAmount = Math.round(totalAmount);
+            double totalAmount = distance * carService.getRatePerKm();  // Total amount based on distance and rate per km
+            totalAmount = Math.round(totalAmount);  // Round the total amount to the nearest integer
     
             // Update RideRequest status to "COMPLETED"
-            rideRequest.setStatus("completed");
+            rideRequest.setStatus("COMPLETED");
             rideRequestRepository.save(rideRequest);
     
             // Save ride history
@@ -253,8 +234,8 @@ public class RideController {
             rideHistory.setDropOffLatitude(rideRequest.getDropOffLatitude());
             rideHistory.setDropOffLongitude(rideRequest.getDropOffLongitude());
             rideHistory.setDistance(distance);
-            rideHistory.setTotalAmount(roundedTotalAmount);
-            rideHistory.setPrice(roundedTotalAmount);
+            rideHistory.setTotalAmount(totalAmount);   
+            rideHistory.setPrice(totalAmount);        
             rideHistory.setServiceName(carService.getName());
             rideHistory.setVehicleType(rideRequest.getVehicleType());
             rideHistory.setDateCompleted(new Date());
@@ -263,9 +244,9 @@ public class RideController {
     
             // Create response object to send back as JSON
             RideResponse rideResponse = new RideResponse();
-            rideResponse.setStatus("completed");
+            rideResponse.setStatus("COMPLETED");
             rideResponse.setMessage("Trip ended successfully");
-            rideResponse.setTotalAmount(roundedTotalAmount);
+            rideResponse.setTotalAmount(totalAmount);
     
             return ResponseEntity.ok(rideResponse);
         } catch (Exception e) {
@@ -276,6 +257,7 @@ public class RideController {
     }
     
     
+
     // Helper method to calculate distance between two coordinates
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Earth radius in km
@@ -287,47 +269,4 @@ public class RideController {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c; // Distance in km
     }
-
-
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<RideHistoryDTO>> getRideHistoryByCustomerId(@PathVariable Long customerId) {
-        List<RideHistoryDTO> rideHistories = rideService.getRideHistoryByCustomerId(customerId);
-        if (rideHistories.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(rideHistories);
-    }
-    
-    @GetMapping("/ride-history")
-    public ResponseEntity<Map<String, Object>> getAllRideHistory() {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            // Fetch all ride history records from the service
-            List<RideHistoryDTO> rideHistories = rideService.getAllRideHistory();
-
-            // Check if the list is empty
-            if (rideHistories.isEmpty()) {
-                response.put("status", "404 NOT FOUND");
-                response.put("message", "No ride history records found.");
-                return ResponseEntity.status(404).body(response);
-            }
-
-            // Return the ride history data in the response
-            response.put("status", "200 OK");
-            response.put("data", rideHistories);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("status", "500 INTERNAL SERVER ERROR");
-            response.put("message", "An error occurred while fetching the ride history.");
-            return ResponseEntity.status(500).body(response);
-        }
-
-
-        
-
- 
-        
-    }
 }
-

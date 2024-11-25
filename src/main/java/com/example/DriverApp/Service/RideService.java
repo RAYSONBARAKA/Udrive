@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 
 import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -89,9 +90,9 @@ private RideHistoryRepository rideHistoryRepository;
     }
 
     public List<CarServiceResponse> getAllVehicleTypesWithPrices(
-        String serviceName, 
-        Long customerId, 
-        double dropOffLatitude, 
+        String serviceName,
+        Long customerId,
+        double dropOffLatitude,
         double dropOffLongitude) {
 
     // Retrieve car services based on serviceName
@@ -108,16 +109,19 @@ private RideHistoryRepository rideHistoryRepository;
     return carServices.stream()
             .map(carService -> {
                 double distance = calculateDistance(pickupLatitude, pickupLongitude, dropOffLatitude, dropOffLongitude);
-                double price = distance * carService.getRatePerKm(); // Calculate price based on distance and rate per km
-                // Since vehicleType is a String, we pass it directly as the vehicle type
+                long roundedDistance = Math.round(distance); // Round distance to the nearest integer
+                
+                double price = roundedDistance * carService.getRatePerKm(); // Calculate price
+                long roundedPrice = Math.round(price); // Round price to the nearest integer
+                
+                // Return response with rounded values
                 return new CarServiceResponse(
                         carService.getVehicleType(), // Vehicle type
-                        price                        // Estimated price
+                        roundedPrice                 // Estimated price (without decimals)
                 );
             })
             .collect(Collectors.toList());
 }
-
 
    // Calculate price using the Haversine formula
 public long calculatePrice(Long customerId, String serviceName, String vehicleType, double dropOffLatitude, double dropOffLongitude) {
@@ -136,13 +140,12 @@ public long calculatePrice(Long customerId, String serviceName, String vehicleTy
 
      long price = Math.round(distance * carService.getRatePerKm());  
 
-    // Return the rounded price
-    return price;
+     return price;
 }
 
-// Haversine formula for distance calculation
-private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    final int EARTH_RADIUS = 6371; // Earth radius in kilometers
+ 
+private long calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    final int EARTH_RADIUS = 6371;  
 
     double latDistance = Math.toRadians(lat2 - lat1);
     double lonDistance = Math.toRadians(lon2 - lon1);
@@ -153,8 +156,11 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
 
     double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return EARTH_RADIUS * c;
+    double distance = EARTH_RADIUS * c;
+
+     return Math.round(distance);
 }
+
 
 
 
@@ -300,93 +306,60 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
         driverDetailsRepository.save(driverDetails);
     }
     
-    public ResponseEntity<?> endTrip(Long rideRequestId) {
-        try {
-            // Fetch RideRequest
-            RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
-                    .orElseThrow(() -> new RuntimeException("RideRequest not found"));
+    public void endTrip(Long rideRequestId) {
+        // Fetch RideRequest
+        RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
+                .orElseThrow(() -> new RuntimeException("RideRequest not found"));
     
-            // Ensure the ride request has an associated car service
-            CarService carService = rideRequest.getCarService();
-            if (carService == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("{\"error\": \"CarService is not associated with this ride request\"}");
-            }
-    
-            // Fetch Customer details
-            Customer customer = rideRequest.getCustomer();
-            if (customer == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("{\"error\": \"Customer not associated with the ride request\"}");
-            }
-    
-            // Fetch DriverDetails and update status
-            DriverDetails driverDetails = rideRequest.getDriverDetails();
-            if (driverDetails == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("{\"error\": \"Driver details not associated with the ride request\"}");
-            }
-    
-            if ("incomplete".equals(driverDetails.getStatus())) {
-                driverDetails.setStatus("completed");
-                driverDetailsRepository.save(driverDetails); // Save updated driver status
-            } else {
-                LOGGER.warn("Driver status is already set to: {}", driverDetails.getStatus());
-            }
-    
-            // Calculate distance
-            double distance = calculateDistance(
-                    customer.getLatitude(), customer.getLongitude(),
-                    rideRequest.getDropOffLatitude(), rideRequest.getDropOffLongitude()
-            );
-    
-            // Calculate total amount
-            double totalAmount = distance * carService.getRatePerKm(); // Total amount based on distance and rate per km
-    
-            // Update RideRequest status to "COMPLETED"
-            rideRequest.setStatus("completed");
-            rideRequestRepository.save(rideRequest);
-    
-            // Save ride history
-            RideHistory rideHistory = new RideHistory();
-            rideHistory.setCustomer(customer);
-            rideHistory.setPickupLatitude(customer.getLatitude());
-            rideHistory.setPickupLongitude(customer.getLongitude());
-            rideHistory.setDropOffLatitude(rideRequest.getDropOffLatitude());
-            rideHistory.setDropOffLongitude(rideRequest.getDropOffLongitude());
-            rideHistory.setDistance(distance);
-            rideHistory.setTotalAmount(Math.round(totalAmount)); // Rounded total amount
-            rideHistory.setServiceName(carService.getName());
-            rideHistory.setPrice(Math.round(totalAmount)); // Ensure price is rounded to the nearest whole number
-            rideHistory.setVehicleType(rideRequest.getVehicleType());
-            rideHistory.setDateCompleted(new Date());
-    
-            rideHistoryRepository.save(rideHistory);
-    
-            LOGGER.info("Trip ended, ride history saved, and driver status updated successfully for RideRequest ID: {}", rideRequestId);
-    
-            // Prepare success response
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Trip ended successfully");
-            response.put("rideRequestId", rideRequestId);
-            response.put("totalAmount", Math.round(totalAmount));
-            response.put("distance", distance);
-            response.put("status", "completed");
-    
-            return ResponseEntity.ok(response);
-    
-        } catch (RuntimeException e) {
-            LOGGER.error("Error ending trip", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("{\"error\": \"" + e.getMessage() + "\"}");
-        } catch (Exception e) {
-            LOGGER.error("Unexpected error ending trip", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\": \"An unexpected error occurred\"}");
+        // Ensure the ride request has an associated car service
+        CarService carService = rideRequest.getCarService();
+        if (carService == null) {
+            throw new RuntimeException("CarService is not associated with this ride request");
         }
+    
+        // Fetch Customer details
+        Customer customer = rideRequest.getCustomer();
+        if (customer == null) {
+            throw new RuntimeException("Customer not associated with the ride request");
+        }
+    
+         Driver driver = carService.getDriver();  // Assuming CarService has a Driver associated
+        if (driver == null) {
+            throw new RuntimeException("Driver not associated with the car service");
+        }
+    
+        // Calculate distance
+        double distance = calculateDistance(
+                customer.getLatitude(), customer.getLongitude(),
+                rideRequest.getDropOffLatitude(), rideRequest.getDropOffLongitude()
+        );
+    
+        // Calculate total amount
+        double totalAmount = distance * carService.getRatePerKm();  // Total amount based on distance and rate per km
+    
+        // Update RideRequest status to "COMPLETED"
+        rideRequest.setStatus("COMPLETED");
+        rideRequestRepository.save(rideRequest);
+    
+        // Save ride history
+        RideHistory rideHistory = new RideHistory();
+        rideHistory.setCustomer(customer);
+        rideHistory.setPickupLatitude(customer.getLatitude());
+        rideHistory.setPickupLongitude(customer.getLongitude());
+        rideHistory.setDropOffLatitude(rideRequest.getDropOffLatitude());
+        rideHistory.setDropOffLongitude(rideRequest.getDropOffLongitude());
+        rideHistory.setDistance(distance);
+        rideHistory.setTotalAmount(totalAmount);   
+        rideHistory.setPrice(totalAmount);         
+        rideHistory.setServiceName(carService.getName());  // Set the service name from the CarService
+        rideHistory.setDriverName(driver.getFullName());  // Set the driver name from the Driver
+        rideHistory.setVehicleType(rideRequest.getVehicleType());
+        rideHistory.setDateCompleted(new Date());
+    
+        rideHistoryRepository.save(rideHistory);
+    
+        LOGGER.info("Trip ended and ride history saved successfully for RideRequest ID: {}", rideRequestId);
     }
-    
-    
     
     public List<RideHistoryDTO> getAllRideHistory() {
         List<RideHistory> rideHistories = rideHistoryRepository.findAll();

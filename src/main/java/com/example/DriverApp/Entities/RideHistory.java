@@ -28,11 +28,19 @@ public class RideHistory {
     private double dropOffLatitude;
     private double dropOffLongitude;
     private double distance;
+    private double price;
     private double totalAmount;
-    private double price;       
-
     private String serviceName;
     private String vehicleType;
+    private String driverName;
+
+    public String getDriverName() {
+        return driverName;
+    }
+
+    public void setDriverName(String driverName) {
+        this.driverName = driverName;
+    }
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateCompleted;
