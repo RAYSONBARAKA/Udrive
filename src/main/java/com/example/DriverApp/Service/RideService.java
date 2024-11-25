@@ -12,21 +12,17 @@ import com.example.DriverApp.DTO.PendingRideRequestDTO;
 import com.example.DriverApp.DTO.RideHistoryDTO;
 import com.example.DriverApp.Entities.*;
 import com.example.DriverApp.Repositories.*;
-import com.example.DriverApp.SocketIo.SocketIOClient;
-import com.example.DriverApp.Utility.Mapper;
+ import com.example.DriverApp.Utility.Mapper;
 
 import io.socket.client.Socket;
-import jakarta.transaction.Transactional;
-
+ 
 import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
+ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+ import java.util.stream.Collectors;
 
 
  
@@ -43,6 +39,8 @@ import java.util.stream.Collectors;
 private RideHistoryRepository rideHistoryRepository;
 
  
+@Autowired
+private ProductsRepository productRepository;
 
     @Autowired
     private RideRequestRepository rideRequestRepository;
@@ -142,6 +140,9 @@ public long calculatePrice(Long customerId, String serviceName, String vehicleTy
 
      return price;
 }
+
+
+
 
  
 private long calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -323,10 +324,20 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
             throw new RuntimeException("Customer not associated with the ride request");
         }
     
-         Driver driver = carService.getDriver();  // Assuming CarService has a Driver associated
+        // Fetch Driver details from CarService
+        Driver driver = carService.getDriver();
         if (driver == null) {
             throw new RuntimeException("Driver not associated with the car service");
         }
+    
+        // Set driver_name in RideRequest
+        rideRequest.setDriverName(driver.getFullName());
+    
+        // Fetch Service Name from Product Table using service_id
+        Long serviceId = rideRequest.getServiceId(); // Assuming RideRequest has a serviceId field
+        Products product = productRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("Product not found for the given service ID"));
+        String serviceName = product.getName(); // Assuming Product has a name field representing the service name
     
         // Calculate distance
         double distance = calculateDistance(
@@ -335,9 +346,9 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
         );
     
         // Calculate total amount
-        double totalAmount = distance * carService.getRatePerKm();  // Total amount based on distance and rate per km
+        double totalAmount = distance * carService.getRatePerKm();
     
-        // Update RideRequest status to "COMPLETED"
+        // Update RideRequest status to "COMPLETED" and save the updated RideRequest
         rideRequest.setStatus("COMPLETED");
         rideRequestRepository.save(rideRequest);
     
@@ -349,10 +360,10 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
         rideHistory.setDropOffLatitude(rideRequest.getDropOffLatitude());
         rideHistory.setDropOffLongitude(rideRequest.getDropOffLongitude());
         rideHistory.setDistance(distance);
-        rideHistory.setTotalAmount(totalAmount);   
-        rideHistory.setPrice(totalAmount);         
-        rideHistory.setServiceName(carService.getName());  // Set the service name from the CarService
-        rideHistory.setDriverName(driver.getFullName());  // Set the driver name from the Driver
+        rideHistory.setTotalAmount(totalAmount);
+        rideHistory.setPrice(totalAmount);
+        rideHistory.setServiceName(serviceName); // Use the service name fetched from Product
+        rideHistory.setDriverName(rideRequest.getDriverName()); // Fetch directly from RideRequest
         rideHistory.setVehicleType(rideRequest.getVehicleType());
         rideHistory.setDateCompleted(new Date());
     
@@ -361,38 +372,50 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
         LOGGER.info("Trip ended and ride history saved successfully for RideRequest ID: {}", rideRequestId);
     }
     
-    public List<RideHistoryDTO> getAllRideHistory() {
-        List<RideHistory> rideHistories = rideHistoryRepository.findAll();
 
-        // Convert the RideHistory entities into RideHistoryDTO objects
-        return rideHistories.stream()
-                .map(rideHistory -> new RideHistoryDTO(
-                        rideHistory.getDistance(),
-                        rideHistory.getTotalAmount(),
-                        rideHistory.getPrice(),
-                        rideHistory.getServiceName() == null ? null : rideHistory.getServiceName(),
-                        rideHistory.getVehicleType()
-                ))
-                .collect(Collectors.toList());
-    }
 
+     
 
     public List<RideHistoryDTO> getRideHistoryByCustomerId(Long customerId) {
+        // Fetch ride histories for the given customer ID
         List<RideHistory> rideHistories = rideHistoryRepository.findByCustomerId(customerId);
-    
-        // Convert the RideHistory entities into RideHistoryDTO objects
+
+        // Convert to DTOs with rounded values
         return rideHistories.stream()
                 .map(rideHistory -> new RideHistoryDTO(
-                        rideHistory.getDistance(),
-                        rideHistory.getTotalAmount(),
-                        rideHistory.getPrice(),
-                        rideHistory.getServiceName() == null ? null : rideHistory.getServiceName(),
-                        rideHistory.getVehicleType()
+                        Math.round(rideHistory.getDistance()),  
+                        Math.round(rideHistory.getTotalAmount()),  
+                        Math.round(rideHistory.getPrice()),  
+                        rideHistory.getServiceName(),
+                        rideHistory.getVehicleType(),
+                        rideHistory.getPickupLatitude(),
+                        rideHistory.getPickupLongitude(),
+                        rideHistory.getDropOffLatitude(),
+                        rideHistory.getDropOffLongitude()
                 ))
                 .collect(Collectors.toList());
     }
-    
 
+
+    public List<RideHistoryDTO> getAllRideHistories() {
+        // Fetch all ride histories
+        List<RideHistory> rideHistories = rideHistoryRepository.findAll();
+
+        // Convert to DTOs with rounded values
+        return rideHistories.stream()
+                .map(rideHistory -> new RideHistoryDTO(
+                        Math.round(rideHistory.getDistance()),  
+                        Math.round(rideHistory.getTotalAmount()),  
+                        Math.round(rideHistory.getPrice()), 
+                        rideHistory.getServiceName(),
+                        rideHistory.getVehicleType(),
+                        rideHistory.getPickupLatitude(),
+                        rideHistory.getPickupLongitude(),
+                        rideHistory.getDropOffLatitude(),
+                        rideHistory.getDropOffLongitude()
+                ))
+                .collect(Collectors.toList());
+    }
 
     
     
