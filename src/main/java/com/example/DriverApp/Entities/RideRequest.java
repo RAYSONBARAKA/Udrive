@@ -1,32 +1,29 @@
 package com.example.DriverApp.Entities;
 
 import java.time.LocalDateTime;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "ride_requests")
 public class RideRequest {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id", nullable = false) 
+    @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
     @ManyToOne
-    @JoinColumn(name = "driver_id") 
+    @JoinColumn(name = "driver_id")
     private Driver driver;
 
-    @ManyToOne
+    
+    
+
+
+     @ManyToOne
     private CarService carService;
 
     private String pickupLocation;
@@ -39,7 +36,7 @@ public class RideRequest {
     private Long version;
 
     private String vehicleType;
-    private String serviceName;  
+    private String serviceName;
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -47,42 +44,29 @@ public class RideRequest {
     private String driverName;
     private double pickupLatitude;
     private double pickupLongitude;
-     private Float calculatedPrice;
 
+    private Float calculatedPrice;
 
-    public Float getCalculatedPrice() {
-        return calculatedPrice;
-    }
-
-    public void setCalculatedPrice(Float calculatedPrice) {
-        this.calculatedPrice = calculatedPrice;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-     
-    
+    @ManyToOne
+    @JoinColumn(name = "driver_details_id", referencedColumnName = "id")
+    private DriverDetails driverDetails;
 
     private double dropOffLatitude;
     private double dropOffLongitude;
 
+ 
     private LocalDateTime requestTime;
     private LocalDateTime acceptanceTime;
     private String status;
 
-    @Column(name = "service_id", nullable = false) // Ensure this field is not nullable
-    private Long serviceId; // Add this field for the service ID
+    @Column(name = "service_id", nullable = false)
+    private Long serviceId;
 
-    @Column(name = "total_price") // New field for total price
-    private double totalPrice; // Add totalPrice field
+    @Column(name = "total_price")
+    private double totalPrice;
 
     // Getters and Setters
+
     public Long getId() {
         return id;
     }
@@ -98,6 +82,12 @@ public class RideRequest {
     public void setCustomer(Customer customer) {
         this.customer = customer;
     }
+
+    public Long getCustomerId() {
+        return customer != null ? customer.getId() : null;    
+    }
+
+     
 
     public Driver getDriver() {
         return driver;
@@ -164,32 +154,35 @@ public class RideRequest {
     }
 
     public Long getServiceId() {
-        return serviceId; // Getter for serviceId
+        return serviceId;
     }
 
     public void setServiceId(Long serviceId) {
-        this.serviceId = serviceId; // Setter for serviceId
+        this.serviceId = serviceId;
     }
 
     public Double getPrice() {
-        return price; // Getter for price (can be null)
+        return price;
     }
 
     public void setPrice(Double price) {
-        this.price = price; // Setter for price (can be null)
+        this.price = price;
     }
 
     public double getTotalPrice() {
-        return totalPrice; // Getter for total price
+        return totalPrice;
     }
 
     public void setTotalPrice(double totalPrice) {
-        this.totalPrice = totalPrice; // Setter for total price
+        this.totalPrice = totalPrice;
     }
 
-    // Method to get the Customer ID
-    public Long getCustomerId() {
-        return customer != null ? customer.getId() : null; 
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
     public LocalDateTime getEndTime() {
@@ -246,5 +239,29 @@ public class RideRequest {
 
     public void setPickupLongitude(double pickupLongitude) {
         this.pickupLongitude = pickupLongitude;
+    }
+
+    public Float getCalculatedPrice() {
+        return calculatedPrice;
+    }
+
+    public void setCalculatedPrice(Float calculatedPrice) {
+        this.calculatedPrice = calculatedPrice;
+    }
+
+    public DriverDetails getDriverDetails() {
+        return driverDetails;
+    }
+
+    public void setDriverDetails(DriverDetails driverDetails) {
+        this.driverDetails = driverDetails;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

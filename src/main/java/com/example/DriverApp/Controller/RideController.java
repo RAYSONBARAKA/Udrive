@@ -32,6 +32,8 @@ public class RideController {
     @Autowired
     private DriverDetailsRepository driverDetailsRepository;
 
+ 
+
    
 
     private final RideRequestRepository rideRequestRepository;
@@ -178,6 +180,7 @@ public class RideController {
         }
     }
 
+     
     // Endpoint for a driver to reject a ride request
     @PostMapping("/reject")
     public ResponseEntity<ApiResponse<String>> rejectRideRequest(
@@ -194,8 +197,7 @@ public class RideController {
         }
     }
 
-    // New endpoint to end a trip
-    @PostMapping("/endTrip/{rideRequestId}")
+     @PostMapping("/endTrip/{rideRequestId}")
     public ResponseEntity<Object> endTrip(@PathVariable Long rideRequestId) {
         try {
             // Fetch RideRequest
@@ -214,6 +216,19 @@ public class RideController {
                 throw new RuntimeException("Customer not associated with the ride request");
             }
     
+            // Fetch DriverDetails and update status
+            DriverDetails driverDetails = rideRequest.getDriverDetails();
+            if (driverDetails == null) {
+                throw new RuntimeException("Driver details not associated with the ride request");
+            }
+    
+            if ("incomplete".equals(driverDetails.getStatus())) {
+                driverDetails.setStatus("completed");
+                driverDetailsRepository.save(driverDetails); // Save updated driver status
+            } else {
+                LOGGER.warn("Driver status is already set to: {}", driverDetails.getStatus());
+            }
+    
             // Calculate distance
             double distance = calculateDistance(
                     customer.getLatitude(), customer.getLongitude(),
@@ -221,13 +236,13 @@ public class RideController {
             );
     
             // Calculate total amount
-            double totalAmount = distance * carService.getRatePerKm();  // Total amount based on distance and rate per km
+            double totalAmount = distance * carService.getRatePerKm(); // Total amount based on distance and rate per km
     
             // Round totalAmount to the nearest whole number
-            long roundedTotalAmount = Math.round(totalAmount);  // This will round to the nearest long integer
+            long roundedTotalAmount = Math.round(totalAmount);
     
             // Update RideRequest status to "COMPLETED"
-            rideRequest.setStatus("COMPLETED");
+            rideRequest.setStatus("completed");
             rideRequestRepository.save(rideRequest);
     
             // Save ride history
@@ -238,8 +253,8 @@ public class RideController {
             rideHistory.setDropOffLatitude(rideRequest.getDropOffLatitude());
             rideHistory.setDropOffLongitude(rideRequest.getDropOffLongitude());
             rideHistory.setDistance(distance);
-            rideHistory.setTotalAmount(roundedTotalAmount); 
-              rideHistory.setPrice(roundedTotalAmount);        
+            rideHistory.setTotalAmount(roundedTotalAmount);
+            rideHistory.setPrice(roundedTotalAmount);
             rideHistory.setServiceName(carService.getName());
             rideHistory.setVehicleType(rideRequest.getVehicleType());
             rideHistory.setDateCompleted(new Date());
@@ -248,9 +263,9 @@ public class RideController {
     
             // Create response object to send back as JSON
             RideResponse rideResponse = new RideResponse();
-            rideResponse.setStatus("COMPLETED");
+            rideResponse.setStatus("completed");
             rideResponse.setMessage("Trip ended successfully");
-            rideResponse.setTotalAmount(roundedTotalAmount);  // Ensure response returns the rounded total amount
+            rideResponse.setTotalAmount(roundedTotalAmount);
     
             return ResponseEntity.ok(rideResponse);
         } catch (Exception e) {
@@ -259,6 +274,7 @@ public class RideController {
                     .body("Failed to end trip: " + e.getMessage());
         }
     }
+    
     
     // Helper method to calculate distance between two coordinates
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -270,6 +286,16 @@ public class RideController {
                         Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c; // Distance in km
+    }
+
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<RideHistoryDTO>> getRideHistoryByCustomerId(@PathVariable Long customerId) {
+        List<RideHistoryDTO> rideHistories = rideService.getRideHistoryByCustomerId(customerId);
+        if (rideHistories.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(rideHistories);
     }
     
     @GetMapping("/ride-history")
@@ -296,6 +322,12 @@ public class RideController {
             response.put("message", "An error occurred while fetching the ride history.");
             return ResponseEntity.status(500).body(response);
         }
+
+
+        
+
+ 
+        
     }
 }
 

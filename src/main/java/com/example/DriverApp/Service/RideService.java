@@ -300,7 +300,7 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
         driverDetailsRepository.save(driverDetails);
     }
     
-    public void endTrip(Long rideRequestId) {
+    public ResponseEntity<?> endTrip(Long rideRequestId) {
         try {
             // Fetch RideRequest
             RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
@@ -309,13 +309,29 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
             // Ensure the ride request has an associated car service
             CarService carService = rideRequest.getCarService();
             if (carService == null) {
-                throw new RuntimeException("CarService is not associated with this ride request");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("{\"error\": \"CarService is not associated with this ride request\"}");
             }
     
             // Fetch Customer details
             Customer customer = rideRequest.getCustomer();
             if (customer == null) {
-                throw new RuntimeException("Customer not associated with the ride request");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("{\"error\": \"Customer not associated with the ride request\"}");
+            }
+    
+            // Fetch DriverDetails and update status
+            DriverDetails driverDetails = rideRequest.getDriverDetails();
+            if (driverDetails == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("{\"error\": \"Driver details not associated with the ride request\"}");
+            }
+    
+            if ("incomplete".equals(driverDetails.getStatus())) {
+                driverDetails.setStatus("completed");
+                driverDetailsRepository.save(driverDetails); // Save updated driver status
+            } else {
+                LOGGER.warn("Driver status is already set to: {}", driverDetails.getStatus());
             }
     
             // Calculate distance
@@ -325,10 +341,10 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
             );
     
             // Calculate total amount
-            double totalAmount = distance * carService.getRatePerKm();  // Total amount based on distance and rate per km
+            double totalAmount = distance * carService.getRatePerKm(); // Total amount based on distance and rate per km
     
             // Update RideRequest status to "COMPLETED"
-            rideRequest.setStatus("COMPLETED");
+            rideRequest.setStatus("completed");
             rideRequestRepository.save(rideRequest);
     
             // Save ride history
@@ -339,19 +355,38 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
             rideHistory.setDropOffLatitude(rideRequest.getDropOffLatitude());
             rideHistory.setDropOffLongitude(rideRequest.getDropOffLongitude());
             rideHistory.setDistance(distance);
-            rideHistory.setTotalAmount(totalAmount); 
-            rideHistory.setServiceName(carService.getName());    
-            rideHistory.setPrice(Math.round(totalAmount));       
+            rideHistory.setTotalAmount(Math.round(totalAmount)); // Rounded total amount
+            rideHistory.setServiceName(carService.getName());
+            rideHistory.setPrice(Math.round(totalAmount)); // Ensure price is rounded to the nearest whole number
             rideHistory.setVehicleType(rideRequest.getVehicleType());
             rideHistory.setDateCompleted(new Date());
     
             rideHistoryRepository.save(rideHistory);
     
-            LOGGER.info("Trip ended and ride history saved successfully for RideRequest ID: {}", rideRequestId);
-        } catch (Exception e) {
+            LOGGER.info("Trip ended, ride history saved, and driver status updated successfully for RideRequest ID: {}", rideRequestId);
+    
+            // Prepare success response
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Trip ended successfully");
+            response.put("rideRequestId", rideRequestId);
+            response.put("totalAmount", Math.round(totalAmount));
+            response.put("distance", distance);
+            response.put("status", "completed");
+    
+            return ResponseEntity.ok(response);
+    
+        } catch (RuntimeException e) {
             LOGGER.error("Error ending trip", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"error\": \"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            LOGGER.error("Unexpected error ending trip", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\": \"An unexpected error occurred\"}");
         }
     }
+    
+    
     
     public List<RideHistoryDTO> getAllRideHistory() {
         List<RideHistory> rideHistories = rideHistoryRepository.findAll();
@@ -367,6 +402,25 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
                 ))
                 .collect(Collectors.toList());
     }
+
+
+    public List<RideHistoryDTO> getRideHistoryByCustomerId(Long customerId) {
+        List<RideHistory> rideHistories = rideHistoryRepository.findByCustomerId(customerId);
+    
+        // Convert the RideHistory entities into RideHistoryDTO objects
+        return rideHistories.stream()
+                .map(rideHistory -> new RideHistoryDTO(
+                        rideHistory.getDistance(),
+                        rideHistory.getTotalAmount(),
+                        rideHistory.getPrice(),
+                        rideHistory.getServiceName() == null ? null : rideHistory.getServiceName(),
+                        rideHistory.getVehicleType()
+                ))
+                .collect(Collectors.toList());
+    }
+    
+
+
     
     
 
@@ -401,19 +455,6 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
         return rideRequestRepository.save(rideRequest);
     }
 
-    // Update driver location
-    public void updateDriverLocation(Long driverId, double latitude, double longitude) {
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new RuntimeException("Driver not found"));
-
-        driver.setLatitude(latitude);
-        driver.setLongitude(longitude);
-        driverRepository.save(driver);
-    }
-
-     
-
-
 
 
  
@@ -447,4 +488,7 @@ private double calculateDistance(double lat1, double lon1, double lat2, double l
         return rideRequestRepository.findById(rideRequestId)
                 .orElseThrow(() -> new RuntimeException("RideRequest not found with ID: " + rideRequestId));
     }
-}
+
+
+    
+ }    

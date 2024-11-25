@@ -52,6 +52,7 @@ com\example\DriverApp\Repositories\DriverDetailsRepository.class
 com\example\DriverApp\Configuration\MailConfig.class
 com\example\DriverApp\Entities\TypeDef.class
 com\example\DriverApp\Repositories\AdminRepository.class
+com\example\DriverApp\Controller\TripController.class
 com\example\DriverApp\Service\RideService$CarServiceResponse.class
 com\example\DriverApp\Repositories\MoverRepository.class
 com\example\DriverApp\DTO\UpdateResponse.class
