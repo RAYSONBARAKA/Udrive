@@ -213,11 +213,11 @@ public ResponseEntity<Object> endTrip(@PathVariable Long rideRequestId) {
             throw new RuntimeException("Customer not associated with the ride request");
         }
 
-        // Fetch Service Name from Product Table using service_id
-        Long serviceId = rideRequest.getServiceId(); // Assuming RideRequest has a serviceId field
-        Products product = productsRepository.findById(serviceId)
-                .orElseThrow(() -> new RuntimeException("Product not found for the given service ID"));
-        String serviceName = product.getName(); // Assuming Product has a name field representing the service name
+        // Fetch Service Name directly from RideRequest
+        String serviceName = rideRequest.getServiceName();
+        if (serviceName == null || serviceName.isEmpty()) {
+            throw new RuntimeException("Service name is not set for this ride request");
+        }
 
         // Calculate distance
         double distance = calculateDistance(
@@ -227,8 +227,8 @@ public ResponseEntity<Object> endTrip(@PathVariable Long rideRequestId) {
         distance = Math.round(distance);  // Round the distance to the nearest integer
 
         // Calculate total amount
-        double totalAmount = distance * carService.getRatePerKm();  // Total amount based on distance and rate per km
-        totalAmount = Math.round(totalAmount);  // Round the total amount to the nearest integer
+        double totalAmount = distance * carService.getRatePerKm();
+        totalAmount = Math.round(totalAmount); // Round the total amount to the nearest integer
 
         // Update RideRequest status to "COMPLETED"
         rideRequest.setStatus("COMPLETED");
@@ -243,9 +243,9 @@ public ResponseEntity<Object> endTrip(@PathVariable Long rideRequestId) {
         rideHistory.setDropOffLongitude(rideRequest.getDropOffLongitude());
         rideHistory.setDistance(distance);
         rideHistory.setDriverName(rideRequest.getDriverName());
-        rideHistory.setTotalAmount(totalAmount);   
-        rideHistory.setPrice(totalAmount);        
-        rideHistory.setServiceName(serviceName);  // Use fetched service name from Product table
+        rideHistory.setTotalAmount(totalAmount);
+        rideHistory.setPrice(totalAmount);
+        rideHistory.setServiceName(serviceName); // Use the fetched service name
         rideHistory.setVehicleType(rideRequest.getVehicleType());
         rideHistory.setDateCompleted(new Date());
 
@@ -264,6 +264,7 @@ public ResponseEntity<Object> endTrip(@PathVariable Long rideRequestId) {
                 .body("Failed to end trip: " + e.getMessage());
     }
 }
+
 
 
     @GetMapping("/get-ridehistory/all")

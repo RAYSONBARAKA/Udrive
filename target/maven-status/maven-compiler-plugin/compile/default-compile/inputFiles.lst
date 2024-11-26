@@ -16,6 +16,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\ProductsCon
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\QRCodeController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\RideController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\ServiceController.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\StatisticsController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\TripController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\UberIntegrationController.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Controller\UploadController.java
@@ -95,6 +96,7 @@ C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\ProductsServic
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\QRCodeService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\RideService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\ServiceService.java
+C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\StatisticsService.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Service\TokenStorage.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\SocketIo\SocketIOClient.java
 C:\Projects\DriverApp\src\main\java\com\example\DriverApp\Utility\JwtUtil.java

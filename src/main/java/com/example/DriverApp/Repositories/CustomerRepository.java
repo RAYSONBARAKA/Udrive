@@ -1,6 +1,7 @@
 package com.example.DriverApp.Repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 import com.example.DriverApp.Entities.Admin;
@@ -15,7 +16,8 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Optional<Customer> findByPhoneNumber(String phoneNumber);
 
     Optional<Customer> findByActivationCode(String activationCode);
-
+  @Query("SELECT COUNT(c) FROM Customer c WHERE c.isActive = true")
+    long countActiveCustomers();
 
 
     

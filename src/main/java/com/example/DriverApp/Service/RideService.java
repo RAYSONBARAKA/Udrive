@@ -166,37 +166,56 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
 
 
     // Send requests to drivers with the same vehicle type
-    public List<RideRequest> sendRequestToDriversWithSameVehicleType(Long customerId, String vehicleType, double dropOffLatitude, double dropOffLongitude, Long serviceId) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-    
-        double pickupLatitude = customer.getLatitude();
-        double pickupLongitude = customer.getLongitude();
-    
-        List<Driver> drivers = driverRepository.findByVehicleTypeAndActive(vehicleType, true);
-        CarService carService = carServiceRepository.findById(serviceId)
-                .orElseThrow(() -> new RuntimeException("CarService not found with ID: " + serviceId));
-    
-        List<RideRequest> rideRequests = new ArrayList<>();
-        for (Driver driver : drivers) {
-            RideRequest rideRequest = new RideRequest();
-            rideRequest.setCustomer(customer);
-            rideRequest.setDriver(driver);
-            rideRequest.setPickupLatitude(pickupLatitude);
-            rideRequest.setPickupLongitude(pickupLongitude);
-            rideRequest.setDropOffLatitude(dropOffLatitude);
-            rideRequest.setDropOffLongitude(dropOffLongitude);
-            rideRequest.setStatus("Pending");
-            rideRequest.setServiceId(serviceId);
-            rideRequest.setCarService(carService);
-            rideRequest.setServiceName(carService.getName());  
-            rideRequest.setVehicleType(vehicleType);
-            rideRequest.setDriverName(driver.getFullName());
-    
-            rideRequests.add(rideRequestRepository.save(rideRequest));
-        }
-        return rideRequests;
+    public List<RideRequest> sendRequestToDriversWithSameVehicleType(
+        Long customerId, String vehicleType, double dropOffLatitude, 
+        double dropOffLongitude, Long serviceId) {
+
+    // Fetch customer details
+    Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new RuntimeException("Customer not found with ID: " + customerId));
+
+    // Get customer's pickup location
+    double pickupLatitude = customer.getLatitude();
+    double pickupLongitude = customer.getLongitude();
+
+    // Find drivers matching the vehicle type
+    List<Driver> drivers = driverRepository.findByVehicleTypeAndActive(vehicleType, true);
+    if (drivers.isEmpty()) {
+        throw new RuntimeException("No drivers available for the specified vehicle type: " + vehicleType);
     }
+
+    // Fetch car service details
+    CarService carService = carServiceRepository.findById(serviceId)
+            .orElseThrow(() -> new RuntimeException("CarService not found with ID: " + serviceId));
+
+    String serviceName = carService.getName();
+    if (serviceName == null || serviceName.isEmpty()) {
+        throw new RuntimeException("CarService with ID " + serviceId + " has no valid name.");
+    }
+
+    // Create and save ride requests for each driver
+    List<RideRequest> rideRequests = new ArrayList<>();
+    for (Driver driver : drivers) {
+        RideRequest rideRequest = new RideRequest();
+        rideRequest.setCustomer(customer);
+        rideRequest.setDriver(driver);
+        rideRequest.setPickupLatitude(pickupLatitude);
+        rideRequest.setPickupLongitude(pickupLongitude);
+        rideRequest.setDropOffLatitude(dropOffLatitude);
+        rideRequest.setDropOffLongitude(dropOffLongitude);
+        rideRequest.setStatus("Pending");
+        rideRequest.setServiceId(serviceId);
+        rideRequest.setCarService(carService);
+        rideRequest.setServiceName(serviceName);  
+        rideRequest.setVehicleType(vehicleType);
+        rideRequest.setDriverName(driver.getFullName());
+
+        // Save the ride request
+        rideRequests.add(rideRequestRepository.save(rideRequest));
+    }
+
+    return rideRequests;
+}
 
     
     public ResponseEntity<Map<String, Object>> acceptRideRequest(Long driverId, Long rideRequestId) {
@@ -333,11 +352,11 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
         // Set driver_name in RideRequest
         rideRequest.setDriverName(driver.getFullName());
     
-        // Fetch Service Name from Product Table using service_id
-        Long serviceId = rideRequest.getServiceId(); // Assuming RideRequest has a serviceId field
-        Products product = productRepository.findById(serviceId)
-                .orElseThrow(() -> new RuntimeException("Product not found for the given service ID"));
-        String serviceName = product.getName(); // Assuming Product has a name field representing the service name
+        // Fetch Service Name directly from RideRequest
+        String serviceName = rideRequest.getServiceName();
+        if (serviceName == null || serviceName.isEmpty()) {
+            throw new RuntimeException("Service name is not set for this ride request");
+        }
     
         // Calculate distance
         double distance = calculateDistance(
@@ -362,8 +381,8 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
         rideHistory.setDistance(distance);
         rideHistory.setTotalAmount(totalAmount);
         rideHistory.setPrice(totalAmount);
-        rideHistory.setServiceName(serviceName); // Use the service name fetched from Product
-        rideHistory.setDriverName(rideRequest.getDriverName()); // Fetch directly from RideRequest
+        rideHistory.setServiceName(serviceName);  // Save the fetched service name
+        rideHistory.setDriverName(rideRequest.getDriverName());
         rideHistory.setVehicleType(rideRequest.getVehicleType());
         rideHistory.setDateCompleted(new Date());
     
@@ -372,7 +391,6 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
         LOGGER.info("Trip ended and ride history saved successfully for RideRequest ID: {}", rideRequestId);
     }
     
-
 
      
 

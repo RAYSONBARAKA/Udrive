@@ -6,6 +6,7 @@ com\example\DriverApp\Service\ProductsService.class
 com\example\DriverApp\Service\DriverService.class
 com\example\DriverApp\DTO\RegisterResponse.class
 com\example\DriverApp\Controller\CustomerController.class
+com\example\DriverApp\Controller\StatisticsController.class
 com\example\DriverApp\DTO\CarServiceResponse.class
 com\example\DriverApp\Entities\Products.class
 com\example\DriverApp\Utility\SwaggerConf.class
@@ -92,6 +93,7 @@ com\example\DriverApp\DTO\RideRequestWithCustomerDTO.class
 com\example\DriverApp\Service\TokenStorage.class
 com\example\DriverApp\Controller\UberIntegrationController.class
 com\example\DriverApp\DriverAppApplication$4.class
+com\example\DriverApp\Service\StatisticsService.class
 com\example\DriverApp\SecurityConfig\CustomAuthorizationFilter.class
 com\example\DriverApp\Entities\DriverDetails.class
 com\example\DriverApp\Service\CloudinaryService.class
