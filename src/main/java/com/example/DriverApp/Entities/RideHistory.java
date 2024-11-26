@@ -33,6 +33,7 @@ public class RideHistory {
     private String serviceName;
     private String vehicleType;
     private String driverName;
+    
 
     public String getDriverName() {
         return driverName;

@@ -1,5 +1,8 @@
 package com.example.DriverApp.Service;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 import com.example.DriverApp.Repositories.CustomerRepository;
@@ -33,6 +36,21 @@ public class StatisticsService {
     
     public long getTotalRidesByService(String serviceName) {
         return rideHistoryRepository.countByServiceName(serviceName);   
+    }
+
+
+    public double getTotalRevenue() {
+        return rideHistoryRepository.calculateTotalRevenue();
+    }
+
+
+     public Map<String, Long> getRidesCountByService() {
+        return rideHistoryRepository.countRidesByService()
+                .stream()
+                .collect(Collectors.toMap(
+                        entry -> (String) entry.get("serviceName"),
+                        entry -> (Long) entry.get("rideCount")
+                ));
     }
 }
 
