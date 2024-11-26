@@ -2,6 +2,7 @@ package com.example.DriverApp.Controller;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,6 +36,11 @@ public class StatisticsController {
         );
     }
 
+    @GetMapping("/api/open/rides-count-by-service")
+    public Map<String, Long> getRidesCountByService() {
+        return statisticsService.getRidesCountByService();
+    }
+
      @GetMapping("/api/open/statistics/service")
     public Map<String, Long> getTotalRidesByService(@RequestParam String serviceName) {
         long totalRides = statisticsService.getTotalRidesByService(serviceName);
@@ -44,9 +50,10 @@ public class StatisticsController {
         );
     }
 
-    @GetMapping("/api/open/rides-by-service")
+
+       @GetMapping("/api/open/rides-by-service")
     public Map<String, Long> getRidesByService() {
         return statisticsService.getRidesCountByService();
-    
     }
 }
+

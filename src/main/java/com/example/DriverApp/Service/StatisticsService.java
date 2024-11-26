@@ -1,5 +1,6 @@
 package com.example.DriverApp.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -43,14 +44,19 @@ public class StatisticsService {
         return rideHistoryRepository.calculateTotalRevenue();
     }
 
+ 
+    public Map<String, Long> getRidesCountByService() {
+        // Fetch the result from the repository
+        List<Object[]> results = rideHistoryRepository.countRidesByService();
 
-     public Map<String, Long> getRidesCountByService() {
-        return rideHistoryRepository.countRidesByService()
-                .stream()
+        // Convert the list of Object[] into a map of serviceName -> count
+        return results.stream()
                 .collect(Collectors.toMap(
-                        entry -> (String) entry.get("serviceName"),
-                        entry -> (Long) entry.get("rideCount")
+                        result -> (String) result[0],  
+                        result -> (Long) result[1]     
                 ));
     }
+
 }
+    
 

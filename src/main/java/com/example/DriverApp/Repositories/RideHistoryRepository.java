@@ -17,8 +17,15 @@ public interface RideHistoryRepository extends JpaRepository<RideHistory, Long> 
     @Query("SELECT SUM(r.totalAmount) FROM RideHistory r")
     Double calculateTotalRevenue();
  
-    @Query("SELECT COALESCE(r.serviceName, 'Total rides') AS serviceName, COUNT(r) AS rideCount FROM RideHistory r GROUP BY r.serviceName")
-List<Map<String, Object>> countRidesByService();
+//     @Query("SELECT COALESCE(r.serviceName, 'Total rides') AS serviceName, COUNT(r) AS rideCount FROM RideHistory r GROUP BY r.serviceName")
+// List<Map<String, Object>> countRidesByService();
+
+@Query("SELECT r.serviceName, COUNT(r) FROM RideHistory r GROUP BY r.serviceName")
+List<Object[]> countRidesByService();
+
+     @Query("SELECT DISTINCT r.serviceName FROM RideHistory r")
+      List<String> findAllServiceNames();
+
 
 }
 

@@ -396,14 +396,11 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
     
 
     public List<RideHistoryDTO> getRideHistoryByCustomerId(Long customerId) {
-        // Fetch ride histories for the given customer ID
-        List<RideHistory> rideHistories = rideHistoryRepository.findByCustomerId(customerId);
+         List<RideHistory> rideHistories = rideHistoryRepository.findByCustomerId(customerId);
     
-        // Map each RideHistory entity to RideHistoryDTO
-        return rideHistories.stream()
+         return rideHistories.stream()
                 .map(rideHistory -> {
-                    // Get the customer’s first and last name from the RideHistory entity
-                    String customerFirstName = rideHistory.getCustomerFirstName();
+                     String customerFirstName = rideHistory.getCustomerFirstName();
                     String customerLastName = rideHistory.getCustomerLastName();
     
                     // Create and return a new RideHistoryDTO with all necessary fields
@@ -427,11 +424,9 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
     
 
     public List<RideHistoryDTO> getAllRideHistories() {
-        // Fetch all ride histories
-        List<RideHistory> rideHistories = rideHistoryRepository.findAll();
+         List<RideHistory> rideHistories = rideHistoryRepository.findAll();
     
-        // Map each RideHistory entity to RideHistoryDTO
-        return rideHistories.stream()
+         return rideHistories.stream()
                 .map(rideHistory -> new RideHistoryDTO(
                         rideHistory.getDistance(),
                         rideHistory.getTotalAmount(),
@@ -443,8 +438,8 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
                         rideHistory.getDropOffLatitude(),
                         rideHistory.getDropOffLongitude(),
                         rideHistory.getDriverName(),
-                        rideHistory.getCustomerFirstName(), // Include the customer's first name
-                        rideHistory.getCustomerLastName()   // Include the customer's last name
+                        rideHistory.getCustomerFirstName(),  
+                        rideHistory.getCustomerLastName()    
                 ))
                 .collect(Collectors.toList());
     }

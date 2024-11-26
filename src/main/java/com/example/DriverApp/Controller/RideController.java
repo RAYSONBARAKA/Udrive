@@ -288,6 +288,7 @@ public ResponseEntity<Object> endTrip(@PathVariable Long rideRequestId) {
                     .body("Failed to fetch ride histories: " + e.getMessage());
         }
     }
+    
 
    @GetMapping("/byCustomer/history/{customerId}")
     public ResponseEntity<Object> getRideHistoryByCustomer(@PathVariable Long customerId) {
@@ -307,7 +308,7 @@ public ResponseEntity<Object> endTrip(@PathVariable Long rideRequestId) {
         }
     
     }
-
+   
 
 
     
