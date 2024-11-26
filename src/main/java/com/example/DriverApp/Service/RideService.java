@@ -392,48 +392,50 @@ private long calculateDistance(double lat1, double lon1, double lat2, double lon
     }
     
 
-     
-
     public List<RideHistoryDTO> getRideHistoryByCustomerId(Long customerId) {
         // Fetch ride histories for the given customer ID
         List<RideHistory> rideHistories = rideHistoryRepository.findByCustomerId(customerId);
-
-        // Convert to DTOs with rounded values
+    
+        // Map each RideHistory entity to RideHistoryDTO
         return rideHistories.stream()
                 .map(rideHistory -> new RideHistoryDTO(
-                        Math.round(rideHistory.getDistance()),  
-                        Math.round(rideHistory.getTotalAmount()),  
-                        Math.round(rideHistory.getPrice()),  
+                        rideHistory.getDistance(),
+                        rideHistory.getTotalAmount(),
+                        rideHistory.getPrice(),
                         rideHistory.getServiceName(),
                         rideHistory.getVehicleType(),
                         rideHistory.getPickupLatitude(),
                         rideHistory.getPickupLongitude(),
                         rideHistory.getDropOffLatitude(),
-                        rideHistory.getDropOffLongitude()
+                        rideHistory.getDropOffLongitude(),
+                        rideHistory.getDriverName()  
                 ))
                 .collect(Collectors.toList());
     }
-
+    
 
     public List<RideHistoryDTO> getAllRideHistories() {
         // Fetch all ride histories
         List<RideHistory> rideHistories = rideHistoryRepository.findAll();
-
-        // Convert to DTOs with rounded values
+    
+        // Map each RideHistory entity to RideHistoryDTO
         return rideHistories.stream()
                 .map(rideHistory -> new RideHistoryDTO(
-                        Math.round(rideHistory.getDistance()),  
-                        Math.round(rideHistory.getTotalAmount()),  
-                        Math.round(rideHistory.getPrice()), 
+                        rideHistory.getDistance(),                
+                        rideHistory.getTotalAmount(),
+                        rideHistory.getPrice(),
                         rideHistory.getServiceName(),
                         rideHistory.getVehicleType(),
                         rideHistory.getPickupLatitude(),
                         rideHistory.getPickupLongitude(),
                         rideHistory.getDropOffLatitude(),
-                        rideHistory.getDropOffLongitude()
+                        rideHistory.getDropOffLongitude(),
+                        rideHistory.getDriverName()  
                 ))
                 .collect(Collectors.toList());
     }
+    
+    
 
     
     

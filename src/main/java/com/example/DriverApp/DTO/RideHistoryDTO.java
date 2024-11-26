@@ -1,54 +1,22 @@
 package com.example.DriverApp.DTO;
 
+
+
 public class RideHistoryDTO {
-    
     private double distance;
     private double totalAmount;
     private double price;
     private String serviceName;
     private String vehicleType;
-
-
     private double pickupLatitude;
     private double pickupLongitude;
     private double dropOffLatitude;
     private double dropOffLongitude;
- 
- 
-    public double getPickupLatitude() {
-        return pickupLatitude;
-    }
-
-    public void setPickupLatitude(double pickupLatitude) {
-        this.pickupLatitude = pickupLatitude;
-    }
-
-    public double getPickupLongitude() {
-        return pickupLongitude;
-    }
-
-    public void setPickupLongitude(double pickupLongitude) {
-        this.pickupLongitude = pickupLongitude;
-    }
-
-    public double getDropOffLatitude() {
-        return dropOffLatitude;
-    }
-
-    public void setDropOffLatitude(double dropOffLatitude) {
-        this.dropOffLatitude = dropOffLatitude;
-    }
-
-    public double getDropOffLongitude() {
-        return dropOffLongitude;
-    }
-
-    public void setDropOffLongitude(double dropOffLongitude) {
-        this.dropOffLongitude = dropOffLongitude;
-    }
+    private String driverName;
 
     public RideHistoryDTO(double distance, double totalAmount, double price, String serviceName, String vehicleType,
-            double pickupLatitude, double pickupLongitude, double dropOffLatitude, double dropOffLongitude) {
+                          double pickupLatitude, double pickupLongitude, double dropOffLatitude, double dropOffLongitude,
+                          String driverName) {
         this.distance = distance;
         this.totalAmount = totalAmount;
         this.price = price;
@@ -58,17 +26,10 @@ public class RideHistoryDTO {
         this.pickupLongitude = pickupLongitude;
         this.dropOffLatitude = dropOffLatitude;
         this.dropOffLongitude = dropOffLongitude;
+        this.driverName = driverName;
     }
 
-    // Constructors
-    public RideHistoryDTO(double distance, double totalAmount, double price, String serviceName, String vehicleType) {
-        this.distance = distance;
-        this.totalAmount = totalAmount;
-        this.price = price;
-        this.serviceName = serviceName;
-        this.vehicleType = vehicleType;
-    }
-
+    // Getters and setters for all fields
     public double getDistance() {
         return distance;
     }
@@ -107,5 +68,45 @@ public class RideHistoryDTO {
 
     public void setVehicleType(String vehicleType) {
         this.vehicleType = vehicleType;
+    }
+
+    public double getPickupLatitude() {
+        return pickupLatitude;
+    }
+
+    public void setPickupLatitude(double pickupLatitude) {
+        this.pickupLatitude = pickupLatitude;
+    }
+
+    public double getPickupLongitude() {
+        return pickupLongitude;
+    }
+
+    public void setPickupLongitude(double pickupLongitude) {
+        this.pickupLongitude = pickupLongitude;
+    }
+
+    public double getDropOffLatitude() {
+        return dropOffLatitude;
+    }
+
+    public void setDropOffLatitude(double dropOffLatitude) {
+        this.dropOffLatitude = dropOffLatitude;
+    }
+
+    public double getDropOffLongitude() {
+        return dropOffLongitude;
+    }
+
+    public void setDropOffLongitude(double dropOffLongitude) {
+        this.dropOffLongitude = dropOffLongitude;
+    }
+
+    public String getDriverName() {
+        return driverName;
+    }
+
+    public void setDriverName(String driverName) {
+        this.driverName = driverName;
     }
 }
