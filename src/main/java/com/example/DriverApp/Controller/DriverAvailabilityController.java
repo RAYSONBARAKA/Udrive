@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.example.DriverApp.DTO.CarTypeWithPriceDTO;
 import com.example.DriverApp.DTO.DriverInfoDTO;
-import com.example.DriverApp.DTO.RideEstimateDTO;
 import com.example.DriverApp.DTO.RideRequestWithCustomerDTO;
 import com.example.DriverApp.DTO.RidesResponse;
 import com.example.DriverApp.Entities.Customer;

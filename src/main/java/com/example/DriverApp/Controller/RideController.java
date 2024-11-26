@@ -239,6 +239,10 @@ public ResponseEntity<Object> endTrip(@PathVariable Long rideRequestId) {
         rideHistory.setCustomer(customer);
         rideHistory.setPickupLatitude(customer.getLatitude());
         rideHistory.setPickupLongitude(customer.getLongitude());
+        rideHistory.setCustomerName(customer.getLastName());
+        rideHistory.setCustomerFirstName(customer.getFirstName());  
+        rideHistory.setCustomerLastName(customer.getLastName());
+        rideHistory.setPickupLatitude(customer.getLatitude());
         rideHistory.setDropOffLatitude(rideRequest.getDropOffLatitude());
         rideHistory.setDropOffLongitude(rideRequest.getDropOffLongitude());
         rideHistory.setDistance(distance);

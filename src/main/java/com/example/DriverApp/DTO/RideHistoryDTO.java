@@ -1,7 +1,5 @@
 package com.example.DriverApp.DTO;
 
-
-
 public class RideHistoryDTO {
     private double distance;
     private double totalAmount;
@@ -13,10 +11,13 @@ public class RideHistoryDTO {
     private double dropOffLatitude;
     private double dropOffLongitude;
     private String driverName;
+    private String customerFirstName;  
+    private String customerLastName;   
 
+    // Constructor with all necessary fields including customer name
     public RideHistoryDTO(double distance, double totalAmount, double price, String serviceName, String vehicleType,
                           double pickupLatitude, double pickupLongitude, double dropOffLatitude, double dropOffLongitude,
-                          String driverName) {
+                          String driverName, String customerFirstName, String customerLastName) {
         this.distance = distance;
         this.totalAmount = totalAmount;
         this.price = price;
@@ -27,6 +28,8 @@ public class RideHistoryDTO {
         this.dropOffLatitude = dropOffLatitude;
         this.dropOffLongitude = dropOffLongitude;
         this.driverName = driverName;
+        this.customerFirstName = customerFirstName;
+        this.customerLastName = customerLastName;
     }
 
     // Getters and setters for all fields
@@ -108,5 +111,21 @@ public class RideHistoryDTO {
 
     public void setDriverName(String driverName) {
         this.driverName = driverName;
+    }
+
+    public String getCustomerFirstName() {
+        return customerFirstName;
+    }
+
+    public void setCustomerFirstName(String customerFirstName) {
+        this.customerFirstName = customerFirstName;
+    }
+
+    public String getCustomerLastName() {
+        return customerLastName;
+    }
+
+    public void setCustomerLastName(String customerLastName) {
+        this.customerLastName = customerLastName;
     }
 }

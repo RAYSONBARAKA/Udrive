@@ -33,7 +33,27 @@ public class RideHistory {
     private String serviceName;
     private String vehicleType;
     private String driverName;
-    
+    private String customerName;
+
+    private String customerFirstName;
+    private String customerLastName;
+
+
+    public String getCustomerFirstName() {
+        return customerFirstName;
+    }
+
+    public void setCustomerFirstName(String customerFirstName) {
+        this.customerFirstName = customerFirstName;
+    }
+
+    public String getCustomerLastName() {
+        return customerLastName;
+    }
+
+    public void setCustomerLastName(String customerLastName) {
+        this.customerLastName = customerLastName;
+    }
 
     public String getDriverName() {
         return driverName;
@@ -140,6 +160,14 @@ public class RideHistory {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
 
