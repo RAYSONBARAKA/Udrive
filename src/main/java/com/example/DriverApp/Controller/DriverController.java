@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class DriverController {
 
     @Autowired
     private DriverService driverService;
-    @PostMapping("/register")
+     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Driver>> registerDriver(
             @RequestParam("driver") String driverJson,
             @RequestParam("criminalBackgroundCheckFile") MultipartFile criminalBackgroundCheckFile,
@@ -38,20 +39,26 @@ public class DriverController {
             // Deserialize JSON string to Driver object
             Driver driver = Mapper.stringToClass(driverJson, Driver.class);
 
-            // Handle null deserialization
+            // Validate deserialized driver
             if (driver == null) {
                 throw new Exception("Invalid driver JSON. Deserialization resulted in null.");
             }
 
-            // Save driver
+            // Save driver using the service
             Driver savedDriver = driverService.saveDriver(driver, criminalBackgroundCheckFile, licenseNumberFile, insuranceDetailsFile);
 
+            // Return success response
             return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK, savedDriver, "Driver registered successfully. Awaiting approval."));
+        } catch (MaxUploadSizeExceededException e) {
+            // Handle file size limit exceeded error
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(new ApiResponse<>(
+                    HttpStatus.PAYLOAD_TOO_LARGE, null, "File size exceeds the maximum allowed limit."));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(HttpStatus.BAD_REQUEST, null, e.getMessage()));
+            // Handle other exceptions
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(
+                    HttpStatus.BAD_REQUEST, null, e.getMessage()));
         }
     }
-
     @PostMapping("/approve/{driverId}")
     public ResponseEntity<ApiResponse<Driver>> approveDriver(@PathVariable Long driverId) {
         try {

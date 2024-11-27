@@ -47,91 +47,87 @@ public class DriverService {
     @Autowired
     private EmailService emailService;
 
+
+    
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
  
     // OTP storage
     private String generatedOtp;
     private String otpEmail;
 
-    // ==================== Driver Management ====================
+    // =================== Driver Management ====================
 
     public Driver saveDriver(
-        Driver driver,
-        MultipartFile criminalBackgroundCheckFile,
-        MultipartFile licenseNumberFile,
-        MultipartFile insuranceDetailsFile
-) throws Exception {
+            Driver driver,
+            MultipartFile criminalBackgroundCheckFile,
+            MultipartFile licenseNumberFile,
+            MultipartFile insuranceDetailsFile
+    ) throws Exception {
 
-     String saveDirectory = "C:\\Users\\user\\Pictures\\Screenshots";
+        // Check if the email already exists
+        if (emailExists(driver.getEmail())) {
+            throw new Exception("Email is already registered.");
+        }
 
-    // Ensure directory exists
-    File directory = new File(saveDirectory);
-    if (!directory.exists()) {
-        if (!directory.mkdirs()) {
-            throw new Exception("Failed to create directory: " + saveDirectory);
+        // Encrypt the password
+        driver.setPassword(passwordEncoder.encode(driver.getPassword()));
+        driver.setStatus("Pending");
+
+        // Upload files to Cloudinary using CloudinaryService
+        String criminalBackgroundCheckUrl = uploadFileToCloudinary(criminalBackgroundCheckFile, "criminalBackgroundCheck");
+        String licenseNumberUrl = uploadFileToCloudinary(licenseNumberFile, "licenseNumber");
+        String insuranceDetailsUrl = uploadFileToCloudinary(insuranceDetailsFile, "insuranceDetails");
+
+        // Set Cloudinary file URLs in the driver entity
+        driver.setCriminalBackgroundCheckUrl(criminalBackgroundCheckUrl);
+        driver.setLicenseNumberUrl(licenseNumberUrl);
+        driver.setInsuranceDetailsUrl(insuranceDetailsUrl);
+
+        // Save the driver with all details and documents
+        return driverRepository.save(driver);
+    }
+
+    private String uploadFileToCloudinary(MultipartFile file, String fileType) throws Exception {
+        if (file == null || file.isEmpty()) {
+            throw new Exception(fileType + " file is required and cannot be empty.");
+        }
+
+        try {
+            Map<String, Object> uploadResult = cloudinaryService.uploadFile(file);
+            return (String) uploadResult.get("secure_url");
+        } catch (IOException e) {
+            throw new Exception("Failed to upload " + fileType + " file to Cloudinary: " + e.getMessage(), e);
         }
     }
 
-    // Check if the email already exists
-    if (emailExists(driver.getEmail())) {
-        throw new Exception("Email is already registered.");
-    }
-
-    // Encrypt the password
-    driver.setPassword(passwordEncoder.encode(driver.getPassword()));
-    driver.setStatus("Pending");  // Set status to "Pending" initially
-
-    // Save the files locally
-    String criminalBackgroundCheckPath = saveFileLocally(criminalBackgroundCheckFile, saveDirectory, "criminalBackgroundCheckFile");
-    String licenseNumberPath = saveFileLocally(licenseNumberFile, saveDirectory, "licenseNumberFile");
-    String insuranceDetailsPath = saveFileLocally(insuranceDetailsFile, saveDirectory, "insuranceDetailsFile");
-
-    // Set the local file paths in the driver entity
-    driver.setCriminalBackgroundCheckUrl(criminalBackgroundCheckPath);
-    driver.setLicenseNumberUrl(licenseNumberPath);
-    driver.setInsuranceDetailsUrl(insuranceDetailsPath);
-
-    // Save the driver with all details and documents
-    return driverRepository.save(driver);
-}
-
-private String saveFileLocally(MultipartFile file, String saveDirectory, String filePrefix) throws Exception {
-    if (file == null || file.isEmpty()) {
-        throw new Exception(filePrefix + " file is required and cannot be empty.");
-    }
-
-    try {
-         String fileName = filePrefix + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        File destinationFile = new File(saveDirectory, fileName);
-
-         file.transferTo(destinationFile);
-
-         return destinationFile.getAbsolutePath();
-    } catch (IOException e) {
-        throw new Exception("Failed to save " + filePrefix + " locally: " + e.getMessage());
-    }
-}
-     public Driver approveDriver(Long driverId) {
+    public Driver approveDriver(Long driverId) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
 
-        driver.setStatus("Approved");  
+        driver.setStatus("Approved");
         driverRepository.save(driver);
 
         emailService.sendApprovalEmail(driver.getEmail(), driver.getFullName());
         return driver;
     }
 
-     public Driver rejectDriver(Long driverId) {
+    public Driver rejectDriver(Long driverId) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found with id: " + driverId));
 
-        driver.setStatus("Rejected");   
+        driver.setStatus("Rejected");
         driverRepository.save(driver);
 
         emailService.sendRejectionEmail(driver.getEmail(), driver.getFullName());
         return driver;
     }
+
+    private boolean emailExists(String email) {
+        return driverRepository.findByEmail(email).isPresent();
+    }
+
+
 
  
      public LoginResponse login(LoginRequest loginRequest) throws Exception {
@@ -252,9 +248,8 @@ private String saveFileLocally(MultipartFile file, String saveDirectory, String 
  
   
  
-     private boolean emailExists(String email) {
-        return driverRepository.findByEmail(email).isPresent();
-    }
+     
+    
 
      public boolean toggleDriverStatus(Long id, boolean enable) {
         Optional<Driver> driverOptional = driverRepository.findById(id);
